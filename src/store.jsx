@@ -149,6 +149,34 @@ function reducer(state, action) {
         ...it, status: 'available', takenBy: null, reportedBy: null,
       }));
 
+    // המוסרת סוגרת בעצמה: נמסר או נלקח מחוץ ללוח (למשל תואם בקבוצה)
+    case 'ownerClose': {
+      let next = updateItem(state, item.id, (it) => ({
+        ...it,
+        status: it.pickup === 'outside' ? 'taken' : 'given',
+        chosenId: null,
+        takenBy: null,
+        reportedBy: null,
+      }));
+      for (const q of item.queue) {
+        if (!item.skipped.includes(q.userId)) next = notify(next, q.userId, `${item.title} כבר נמסר`, item.id);
+      }
+      return next;
+    }
+
+    // "טעיתי, להחזיר ללוח": מי שנבחרה חוזרת להיות שמורה, אחרת זמין
+    case 'reopen': {
+      let next = updateItem(state, item.id, (it) => ({
+        ...it, status: it.chosenId ? 'reserved' : 'available',
+      }));
+      for (const q of item.queue) {
+        if (!item.skipped.includes(q.userId) && q.userId !== item.chosenId) {
+          next = notify(next, q.userId, `${item.title} חזר ללוח`, item.id);
+        }
+      }
+      return next;
+    }
+
     case 'addAlert':
       if (!action.query.trim()) return state;
       return { ...state, alerts: [...state.alerts, { id: uid(), userId: me, query: action.query.trim() }] };

@@ -73,14 +73,19 @@ function OwnerPanel({ item }) {
   const { dispatch } = useStore();
   const act = (type, extra = {}) => dispatch({ type, itemId: item.id, ...extra });
 
-  // נמסר
+  // נמסר. בלי chosenId: המוסרת סגרה בעצמה, למשל אחרי תיאום בקבוצה
   if (item.status === 'given') {
     const to = userById(item.chosenId);
+    const waited = item.queue.some((q) => q.userId !== item.chosenId);
     return (
       <div className="done-card">
         <Icon name="check" size={36} />
         <strong className="done-title">בבית חדש</strong>
-        <span className="muted">נמסר ל{to?.short}. מי שחיכתה בתור קיבלה עדכון.</span>
+        <span className="muted">
+          {to ? `נמסר ל${to.short}.` : 'סימנת שנמסר.'}
+          {waited && ' מי שחיכתה בתור קיבלה עדכון.'}
+        </span>
+        <button className="btn btn-ghost" onClick={() => act('reopen')}>טעיתי, להחזיר ללוח</button>
       </div>
     );
   }
@@ -93,10 +98,13 @@ function OwnerPanel({ item }) {
         <div className="done-card">
           <Icon name="check" size={36} />
           <strong className="done-title">
-            {item.status === 'taken' ? `${who.short} לקחה את זה` : `${who.short} הגיעה וזה כבר לא היה שם`}
+            {!who ? 'סימנת שזה נלקח'
+              : item.status === 'taken' ? `${who.short} לקחה את זה` : `${who.short} הגיעה וזה כבר לא היה שם`}
           </strong>
           <span className="muted">הסטטוס התעדכן לכולם, אף אחת לא תטרח לחינם.</span>
-          <button className="btn btn-ghost" onClick={() => act('stillThere')}>זה עדיין שם, להחזיר לזמין</button>
+          <button className="btn btn-ghost" onClick={() => act('stillThere')}>
+            {who ? 'זה עדיין שם, להחזיר לזמין' : 'טעיתי, להחזיר ללוח'}
+          </button>
         </div>
       );
     }
@@ -104,6 +112,7 @@ function OwnerPanel({ item }) {
       <div className="panel">
         <p className="muted">מחכה בחוץ. מי שלוקחת מסמנת בעצמה, ותקבלי עדכון.</p>
         <ShareButton item={item} />
+        <button className="btn btn-ghost" onClick={() => act('ownerClose')}>נלקח</button>
       </div>
     );
   }
@@ -159,6 +168,13 @@ function OwnerPanel({ item }) {
           );
         })}
       </ol>
+
+      {!item.chosenId && (
+        <div className="stack-8">
+          <p className="muted small">{item.queue.length > 0 ? 'מסרת למישהי מחוץ לתור, למשל מהקבוצה?' : 'מסרת למישהי מהקבוצה?'}</p>
+          <button className="btn btn-ghost" onClick={() => act('ownerClose')}>נמסר</button>
+        </div>
+      )}
     </section>
   );
 }
