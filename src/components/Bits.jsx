@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { categoryById, userById } from '../store.jsx';
 import { isDone, statusLabel } from '../utils.js';
 
@@ -17,8 +18,10 @@ export function StatusPill({ item }) {
 
 export function Photo({ item, className = '' }) {
   const cat = categoryById(item.category);
-  if (item.photo) {
-    return <img className={`photo ${className}`} src={item.photo} alt={item.title} />;
+  // תמונה שלא נטענה (בלי רשת, קישור שבור) חוזרת לרקע של הקטגוריה
+  const [failed, setFailed] = useState(null);
+  if (item.photo && failed !== item.photo) {
+    return <img className={`photo ${className}`} src={item.photo} alt={item.title} loading="lazy" onError={() => setFailed(item.photo)} />;
   }
   return (
     <div className={`photo photo-empty ${className}`} style={{ background: cat.tint }} role="img" aria-label={item.title}>

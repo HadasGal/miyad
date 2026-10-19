@@ -23,13 +23,17 @@ export const CATEGORIES = [
 const min = 60 * 1000;
 const hour = 60 * min;
 
+// תמונות דמו מ-Unsplash (רישיון חופשי). קישור ישיר ל-CDN שלהם, כמו שהם ממליצים,
+// בגודל 800 פיקסלים. אם אין רשת, Photo חוזר לרקע של הקטגוריה.
+const unsplash = (id) => `https://images.unsplash.com/photo-${id}?w=800&q=70&auto=format&fit=crop`;
+
 export function buildInitialItems(now = Date.now()) {
   return [
     {
       id: 'sofa', title: 'ספה תלת מושבית אפורה', category: 'furniture', condition: 'טוב מאוד',
       description: 'עברנו דירה והיא לא נכנסת לסלון החדש. צריך שניים להרים.',
       ownerId: 'dana', createdAt: now - 1 * hour, pickup: 'coordinate', location: '',
-      status: 'available', chosenId: null, skipped: [], takenBy: null, reportedBy: null, photo: null,
+      status: 'available', chosenId: null, skipped: [], takenBy: null, reportedBy: null, photo: unsplash('1491926626787-62db157af940'),
       queue: [
         { userId: 'michal', at: now - 40 * min },
         { userId: 'noa', at: now - 25 * min },
@@ -39,32 +43,32 @@ export function buildInitialItems(now = Date.now()) {
       id: 'cups', title: 'שישה ספלי קרמיקה לבנים', category: 'kitchen', condition: 'כמו חדש',
       description: 'לא צריך לתאם, פשוט לקחת.',
       ownerId: 'shula', createdAt: now - 3 * hour, pickup: 'outside', location: 'על החומה ליד השער',
-      status: 'available', chosenId: null, skipped: [], takenBy: null, reportedBy: null, photo: null, queue: [],
+      status: 'available', chosenId: null, skipped: [], takenBy: null, reportedBy: null, photo: unsplash('1523367118146-091f762cd8ea'), queue: [],
     },
     {
       id: 'stroller', title: 'עגלת תינוק מתקפלת', category: 'kids', condition: 'טוב',
       description: 'משומשת, עובדת מצוין. הגגון קצת דהוי.',
       ownerId: 'yael', createdAt: now - 26 * hour, pickup: 'coordinate', location: '',
-      status: 'reserved', chosenId: 'michal', skipped: [], takenBy: null, reportedBy: null, photo: null,
+      status: 'reserved', chosenId: 'michal', skipped: [], takenBy: null, reportedBy: null, photo: unsplash('1559135141-2bea6465fccf'),
       queue: [{ userId: 'michal', at: now - 25 * hour }, { userId: 'dana', at: now - 20 * hour }],
     },
     {
       id: 'books', title: 'ערימת ספרי ילדים', category: 'books', condition: 'טוב',
       description: 'בערך 30 ספרים, גילאי 4 עד 8.',
       ownerId: 'noa', createdAt: now - 3 * hour, pickup: 'coordinate', location: '',
-      status: 'available', chosenId: null, skipped: [], takenBy: null, reportedBy: null, photo: null, queue: [],
+      status: 'available', chosenId: null, skipped: [], takenBy: null, reportedBy: null, photo: unsplash('1497633762265-9d179a990aa6'), queue: [],
     },
     {
       id: 'herbs', title: 'שלושה עציצי תבלינים', category: 'garden', condition: 'חי ובועט',
       description: 'נענע, בזיליקום ורוזמרין.',
       ownerId: 'michal', createdAt: now - 5 * hour, pickup: 'outside', location: 'ליד הדלת, מתחת לתיבת הדואר',
-      status: 'available', chosenId: null, skipped: [], takenBy: null, reportedBy: null, photo: null, queue: [],
+      status: 'available', chosenId: null, skipped: [], takenBy: null, reportedBy: null, photo: unsplash('1556929361-f0763cc59812'), queue: [],
     },
     {
       id: 'desk', title: 'שולחן כתיבה מעץ', category: 'furniture', condition: 'טוב',
       description: '',
       ownerId: 'shula', createdAt: now - 50 * hour, pickup: 'coordinate', location: '',
-      status: 'given', closedAt: now - 47 * hour, chosenId: 'yael', skipped: [], takenBy: null, reportedBy: null, photo: null,
+      status: 'given', closedAt: now - 47 * hour, chosenId: 'yael', skipped: [], takenBy: null, reportedBy: null, photo: unsplash('1519219788971-8d9797e0928e'),
       queue: [{ userId: 'yael', at: now - 49 * hour }],
     },
   ];

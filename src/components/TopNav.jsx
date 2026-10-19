@@ -15,7 +15,7 @@ export default function TopNav({ current }) {
     <header className="top-nav">
       <div className="top-nav-inner">
         <a href="#/" className="brand">
-          <strong className="brand-name">מיד</strong>
+          <strong className="brand-name">מיד<span className="brand-dot">.</span></strong>
           <span className="muted small">{COMMUNITY.name}</span>
         </a>
         <nav className="top-links" aria-label="ניווט ראשי">

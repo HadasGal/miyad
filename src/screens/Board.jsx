@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { matchesQuery, useStore } from '../store.jsx';
+import { isNew, matchesQuery, useStore } from '../store.jsx';
 import { COMMUNITY, CATEGORIES } from '../data/mockData.js';
 import { Photo, StatusPill } from '../components/Bits.jsx';
 import Icon from '../components/Icon.jsx';
@@ -31,7 +31,7 @@ export default function Board() {
       <header className="board-head">
         <div className="board-titles">
           <span className="muted small">{COMMUNITY.name}</span>
-          <h1>מה נמסר היום?</h1>
+          <h1>מה <span className="mark">נמסר</span> היום?</h1>
         </div>
         <span className="avatar avatar-accent" aria-hidden="true">{me.short[0]}</span>
       </header>
@@ -72,6 +72,7 @@ export default function Board() {
                 <div className="card-photo">
                   <Photo item={it} />
                   <StatusPill item={it} />
+                  {isNew(it) && <span className="tag-new">חדש</span>}
                 </div>
                 <div className="card-body">
                   <span className="card-title">{it.title}</span>

@@ -109,6 +109,10 @@ export function myLists(state, userId) {
   };
 }
 
+// "חדש" בלוח: פורסם בשעתיים האחרונות ועוד פתוח. מה שמביא לפתוח את הלוח שוב.
+const NEW_WINDOW = 2 * 60 * 60 * 1000;
+export const isNew = (item, now = Date.now()) => !isDone(item.status) && now - item.createdAt < NEW_WINDOW;
+
 // מכסת פרסום: עד 5 פריטים לשעה לכל משתמשת, גם אחד אחד וגם בהעלאה מרובה.
 // שומר על הלוח ועל הקבוצה מהצפה. resetsAt: מתי מתפנה המקום הבא.
 export const PUBLISH_LIMIT = 5;

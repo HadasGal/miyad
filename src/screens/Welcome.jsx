@@ -17,11 +17,11 @@ export default function Welcome() {
     <div className="welcome">
       <div className="welcome-text">
         <div className="brand-lockup">
-          <strong className="brand-big">מיד</strong>
+          <strong className="brand-big">מיד<span className="brand-dot">.</span></strong>
           <span className="muted">{COMMUNITY.name}</span>
         </div>
 
-        <h1 className="welcome-h">מה שמוסרים בשכונה, במקום אחד</h1>
+        <h1 className="welcome-h">מה שמוסרים בשכונה, <span className="mark">במקום אחד</span></h1>
         <p className="welcome-sub">
           מפרסמים בשנייה, רואים מה עוד זמין, ומקבלים התראה כשמה שחיפשת מופיע. הקבוצה בווצאפ נשארת, ופה הסטטוס תמיד אמיתי.
         </p>

@@ -14,6 +14,12 @@
   --held-ink: #6B4E00;
   --done: #E4E6E3;
   --done-ink: #3F4642;
+  /* מבטא שני: טרקוטה. ניצוץ לפעולה ולחדש, במשורה. ירוק נשאר הצבע של המוצר והסטטוס. */
+  --pop: #E2673D;          /* גרפיקה: אייקון, נקודה, קו הדגשה */
+  --pop-strong: #C4532C;   /* מילוי עם טקסט לבן (4.5:1) */
+  --on-pop: #FFFFFF;
+  --pop-soft: #FBE3D8;
+  --pop-ink: #7A2E14;
   --wa-bg: #E5DDD5;
   --wa-bubble: #DCF8C6;
   --r-card: 20px;
@@ -40,6 +46,11 @@
     --held-ink: #F2D27A;
     --done: #2A2F2B;
     --done-ink: #B9C1BB;
+    --pop: #F08A62;
+    --pop-strong: #F08A62;
+    --on-pop: #0F1A13;
+    --pop-soft: #3D2219;
+    --pop-ink: #F6B79B;
     --wa-bg: #1B2420;
     --wa-bubble: #234434;
     --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
@@ -124,6 +135,10 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .board-head { display: flex; justify-content: space-between; align-items: center; padding-top: 8px; }
 .board-titles { display: flex; flex-direction: column; gap: 2px; }
 .board-titles h1 { font-size: 26px; font-weight: 700; }
+/* הדגשה של מילה אחת בכותרת, כמו טוש */
+.mark { box-shadow: inset 0 -0.32em 0 var(--pop-soft); padding: 0 2px; }
+.brand-dot { color: var(--pop); }
+.tag-new { position: absolute; bottom: 10px; left: 10px; padding: 3px 9px; border-radius: 10px; background: var(--pop-strong); color: var(--on-pop); font-size: 12px; font-weight: 700; }
 .search { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 26px; color: var(--muted); }
 .search input { flex: 1; border: 0; outline: none; background: transparent; font-size: 16px; color: var(--ink); min-width: 0; }
 .search:focus-within { border-color: var(--accent); }
@@ -152,8 +167,8 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .nav-tab { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); text-decoration: none; min-width: 56px; min-height: 48px; justify-content: center; }
 .nav-tab.is-active { color: var(--accent); font-weight: 500; }
 .nav-icon { position: relative; display: inline-flex; }
-.badge { position: absolute; top: -4px; left: -8px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--held-ink); color: #FFFFFF; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-.nav-plus { width: 58px; height: 58px; border-radius: 29px; background: var(--accent); color: var(--accent-ink); display: flex; align-items: center; justify-content: center; margin-top: -26px; box-shadow: 0 0 0 6px var(--bg); }
+.badge { position: absolute; top: -4px; left: -8px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--pop-strong); color: var(--on-pop); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.nav-plus { width: 58px; height: 58px; border-radius: 29px; background: var(--pop); color: var(--on-pop); display: flex; align-items: center; justify-content: center; margin-top: -26px; box-shadow: 0 0 0 6px var(--bg); }
 
 /* עמוד פריט */
 .item-hero { position: relative; height: 340px; }
@@ -318,7 +333,8 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
   .top-link:hover { color: var(--ink); background: var(--bg); }
   .top-link.is-active { color: var(--accent-soft-ink); background: var(--accent-soft); }
   .badge-inline { position: static; }
-  .top-publish { width: auto; min-height: 44px; padding: 0 22px; }
+  .top-publish { width: auto; min-height: 44px; padding: 0 22px; background: var(--pop-strong); color: var(--on-pop); }
+  .top-publish:hover { color: var(--on-pop); }
 
   .bottom-nav { display: none; }
   main.with-nav { padding-bottom: 48px; }
