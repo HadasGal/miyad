@@ -6,7 +6,10 @@ import { createContext, useContext, useEffect, useReducer } from 'react';
 import { USERS, INITIAL_ALERTS, buildInitialItems, CATEGORIES } from './data/mockData.js';
 import { isDone } from './utils.js';
 
-const STORAGE_KEY = 'miyad:v1';
+// מעלים גרסה בכל פעם שנתוני הדמו או מבנה המצב משתנים. אחרת דפדפן עם מצב שמור ישן
+// ממשיך לטעון אותו, ולא רואה את החדש (ככה התמונות "לא הופיעו").
+const STORAGE_KEY = 'miyad:v2';
+const OLD_KEYS = ['miyad:v1'];
 
 // כניסה: mode הוא null (עוד לא נכנסה), 'demo' (צופה בדמו), או 'pending' (נרשמה ומחכה לאישור).
 // בדמו ההרשמה מדומה. ב-Firebase: לינק למייל (Auth), והאישור של מנהלת הקהילה ב-Firestore.
@@ -24,6 +27,7 @@ function initialState(session = NO_SESSION) {
 
 function loadState() {
   try {
+    OLD_KEYS.forEach((k) => localStorage.removeItem(k));
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return { session: NO_SESSION, ...JSON.parse(raw) };
   } catch (e) {
