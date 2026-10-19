@@ -211,6 +211,15 @@ function SeekerPanel({ item, owner }) {
     );
   }
 
+  // דילגו עליה: היא עדיין ב-queue, אז "אני רוצה" לא היה עושה כלום
+  if (item.skipped.includes(me.id)) {
+    return (
+      <div className="action-bar">
+        <p className="muted center">האיסוף לא הסתדר, אז התור עבר לבאה. אפשר לשמור התראה ונעדכן כשיופיע משהו דומה.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="action-bar">
       <p className="muted center">

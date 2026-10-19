@@ -10,10 +10,15 @@ export default function Alerts() {
   const mine = state.notifications.filter((n) => n.userId === me.id);
   const searches = state.alerts.filter((a) => a.userId === me.id);
 
-  // מסמנים כנקרא כשיוצאים מהמסך, כדי שההדגשה של החדשות תישאר בזמן הקריאה
+  // צילום של מה שהיה חדש כשנכנסנו, כדי שההדגשה תישאר בזמן הקריאה.
+  // מתעדכן אם מחליפים משתמשת בזמן שהמסך פתוח.
+  const unreadIds = () => new Set(mine.filter((n) => !n.read).map((n) => n.id));
+  const [fresh, setFresh] = useState(() => ({ userId: me.id, ids: unreadIds() }));
+  if (fresh.userId !== me.id) setFresh({ userId: me.id, ids: unreadIds() });
+
+  // מסמנים כנקרא בכניסה. פעולה שאפשר להריץ פעמיים בלי נזק, אז StrictMode לא שובר אותה.
   useEffect(() => {
-    const userId = me.id;
-    return () => dispatch({ type: 'markRead', userId });
+    dispatch({ type: 'markRead', userId: me.id });
   }, [dispatch, me.id]);
 
   const add = (e) => {
@@ -56,7 +61,7 @@ export default function Alerts() {
           <ul className="list">
             {mine.map((n) => (
               <li key={n.id}>
-                <a href={`#/item/${n.itemId}`} className={`note-row ${n.read ? '' : 'is-new'}`}>
+                <a href={`#/item/${n.itemId}`} className={`note-row ${fresh.ids.has(n.id) ? 'is-new' : ''}`}>
                   <span className="note-dot" aria-hidden="true" />
                   <div className="stack-2 grow">
                     <span>{n.text}</span>
