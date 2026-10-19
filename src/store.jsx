@@ -4,6 +4,7 @@
 
 import { createContext, useContext, useEffect, useReducer } from 'react';
 import { USERS, INITIAL_ALERTS, buildInitialItems, CATEGORIES } from './data/mockData.js';
+import { isDone } from './utils.js';
 
 const STORAGE_KEY = 'miyad:v1';
 
@@ -49,6 +50,13 @@ function matchesAlert(item, query) {
   if (!q) return false;
   const cat = CATEGORIES.find((c) => c.id === item.category)?.label ?? '';
   return item.title.includes(q) || cat.includes(q);
+}
+
+// פריט שנסגר נשאר ב"שלי" שבוע, ורק בזמן הזה אפשר להחזיר אותו ללוח.
+// בלי closedAt (נתונים ישנים מ-localStorage): מתייחסים כאילו נסגר עכשיו.
+export const REOPEN_WINDOW = 7 * 24 * 60 * 60 * 1000;
+export function canReopen(item, now = Date.now()) {
+  return isDone(item.status) && now - (item.closedAt ?? now) < REOPEN_WINDOW;
 }
 
 // התור: הבאה בתור היא הראשונה לפי הסדר שלא דילגו עליה
@@ -125,7 +133,7 @@ function reducer(state, action) {
     }
 
     case 'deliver': {
-      let next = updateItem(state, item.id, (it) => ({ ...it, status: 'given' }));
+      let next = updateItem(state, item.id, (it) => ({ ...it, status: 'given', closedAt: Date.now() }));
       for (const q of item.queue) {
         if (q.userId !== item.chosenId) next = notify(next, q.userId, `${item.title} כבר נמסר`, item.id);
       }
@@ -134,19 +142,19 @@ function reducer(state, action) {
 
     // "מחכה בחוץ": מי שלקחה מסמנת בעצמה
     case 'take': {
-      const next = updateItem(state, item.id, (it) => ({ ...it, status: 'taken', takenBy: me }));
+      const next = updateItem(state, item.id, (it) => ({ ...it, status: 'taken', takenBy: me, closedAt: Date.now() }));
       return notify(next, item.ownerId, `${nameOf(me)} לקחה את ${item.title}`, item.id);
     }
 
     case 'reportGone': {
-      const next = updateItem(state, item.id, (it) => ({ ...it, status: 'gone', reportedBy: me }));
+      const next = updateItem(state, item.id, (it) => ({ ...it, status: 'gone', reportedBy: me, closedAt: Date.now() }));
       return notify(next, item.ownerId, `${nameOf(me)} הגיעה ו${item.title} כבר לא שם`, item.id);
     }
 
     // רשת ביטחון: המוסרת מחזירה לזמין אם מישהי טעתה
     case 'stillThere':
       return updateItem(state, action.itemId, (it) => ({
-        ...it, status: 'available', takenBy: null, reportedBy: null,
+        ...it, status: 'available', takenBy: null, reportedBy: null, closedAt: null,
       }));
 
     // המוסרת סוגרת בעצמה: נמסר או נלקח מחוץ ללוח (למשל תואם בקבוצה)
@@ -157,6 +165,7 @@ function reducer(state, action) {
         chosenId: null,
         takenBy: null,
         reportedBy: null,
+        closedAt: Date.now(),
       }));
       for (const q of item.queue) {
         if (!item.skipped.includes(q.userId)) next = notify(next, q.userId, `${item.title} כבר נמסר`, item.id);
@@ -164,10 +173,16 @@ function reducer(state, action) {
       return next;
     }
 
-    // "טעיתי, להחזיר ללוח": מי שנבחרה חוזרת להיות שמורה, אחרת זמין
+    // "להחזיר ללוח" מתוך "שלי": רק המוסרת, ורק בשבוע אחרי הסגירה.
+    // מי שנבחרה חוזרת להיות שמורה, אחרת זמין.
     case 'reopen': {
+      if (!item || item.ownerId !== me || !canReopen(item)) return state;
       let next = updateItem(state, item.id, (it) => ({
-        ...it, status: it.chosenId ? 'reserved' : 'available',
+        ...it,
+        status: it.chosenId ? 'reserved' : 'available',
+        takenBy: null,
+        reportedBy: null,
+        closedAt: null,
       }));
       for (const q of item.queue) {
         if (!item.skipped.includes(q.userId) && q.userId !== item.chosenId) {

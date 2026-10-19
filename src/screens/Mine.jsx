@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { useStore } from '../store.jsx';
+import { canReopen, useStore } from '../store.jsx';
 import { Photo, StatusPill } from '../components/Bits.jsx';
-import { isDone, timeAgo } from '../utils.js';
+import { isDone, statusLabel, timeAgo } from '../utils.js';
 
 export default function Mine() {
-  const { state, me } = useStore();
+  const { state, dispatch, me } = useStore();
   const [tab, setTab] = useState('given');
 
-  const given = state.items.filter((i) => i.ownerId === me.id);
+  // מה שנסגר נשאר כאן שבוע, ורק מכאן אפשר להחזיר אותו ללוח
+  const given = state.items.filter((i) => i.ownerId === me.id && (!isDone(i.status) || canReopen(i)));
   const requested = state.items.filter(
     (i) => i.ownerId !== me.id && (i.queue.some((q) => q.userId === me.id) || i.takenBy === me.id)
   );
@@ -44,6 +45,18 @@ export default function Mine() {
         <ul className="list">
           {list.map((it) => (
             <li key={it.id}>
+              {tab === 'given' && isDone(it.status) ? (
+                <div className="list-row is-closed">
+                  <div className="list-row-main" aria-disabled="true">
+                    <Photo item={it} className="list-thumb" />
+                    <div className="stack-2 grow">
+                      <strong className="fw-500">{it.title}</strong>
+                      <span className="muted small">{statusLabel(it)} {timeAgo(it.closedAt ?? it.createdAt)}</span>
+                    </div>
+                  </div>
+                  <button className="btn-small" onClick={() => dispatch({ type: 'reopen', itemId: it.id })}>להחזיר ללוח</button>
+                </div>
+              ) : (
               <a href={`#/item/${it.id}`} className={`list-row ${isDone(it.status) ? 'is-done' : ''}`}>
                 <Photo item={it} className="list-thumb" />
                 <div className="stack-2 grow">
@@ -56,6 +69,7 @@ export default function Mine() {
                 </div>
                 <StatusPill item={it} />
               </a>
+              )}
             </li>
           ))}
         </ul>

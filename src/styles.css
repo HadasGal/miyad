@@ -213,6 +213,8 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .list-row { display: flex; align-items: center; gap: 12px; padding: 10px; background: var(--surface); border-radius: 18px; text-decoration: none; color: var(--ink); }
 .list-row:hover { color: var(--ink); }
 .list-row.is-done { opacity: 0.6; }
+.list-row-main { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.list-row.is-closed .list-row-main { opacity: 0.55; }
 .list-thumb { width: 60px; height: 60px; border-radius: 14px; overflow: hidden; flex-shrink: 0; }
 .saved { display: flex; flex-wrap: wrap; gap: 8px; }
 .saved-chip { display: inline-flex; align-items: center; gap: 2px; padding-inline-start: 14px; border-radius: 18px; background: var(--accent-soft); color: var(--accent-soft-ink); font-size: 14px; }

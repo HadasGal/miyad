@@ -64,7 +64,7 @@ export function buildInitialItems(now = Date.now()) {
       id: 'desk', title: 'שולחן כתיבה מעץ', category: 'furniture', condition: 'טוב',
       description: '',
       ownerId: 'shula', createdAt: now - 50 * hour, pickup: 'coordinate', location: '',
-      status: 'given', chosenId: 'yael', skipped: [], takenBy: null, reportedBy: null, photo: null,
+      status: 'given', closedAt: now - 47 * hour, chosenId: 'yael', skipped: [], takenBy: null, reportedBy: null, photo: null,
       queue: [{ userId: 'yael', at: now - 49 * hour }],
     },
   ];

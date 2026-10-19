@@ -85,7 +85,7 @@ function OwnerPanel({ item }) {
           {to ? `נמסר ל${to.short}.` : 'סימנת שנמסר.'}
           {waited && ' מי שחיכתה בתור קיבלה עדכון.'}
         </span>
-        <button className="btn btn-ghost" onClick={() => act('reopen')}>טעיתי, להחזיר ללוח</button>
+        <a className="btn btn-ghost" href="#/mine">לפריטים שלי</a>
       </div>
     );
   }
@@ -102,9 +102,9 @@ function OwnerPanel({ item }) {
               : item.status === 'taken' ? `${who.short} לקחה את זה` : `${who.short} הגיעה וזה כבר לא היה שם`}
           </strong>
           <span className="muted">הסטטוס התעדכן לכולם, אף אחת לא תטרח לחינם.</span>
-          <button className="btn btn-ghost" onClick={() => act('stillThere')}>
-            {who ? 'זה עדיין שם, להחזיר לזמין' : 'טעיתי, להחזיר ללוח'}
-          </button>
+          {who
+            ? <button className="btn btn-ghost" onClick={() => act('stillThere')}>זה עדיין שם, להחזיר לזמין</button>
+            : <a className="btn btn-ghost" href="#/mine">לפריטים שלי</a>}
         </div>
       );
     }
