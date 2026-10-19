@@ -27,7 +27,7 @@ export default function Board() {
   };
 
   return (
-    <div className="screen">
+    <div className="screen screen-wide">
       <header className="board-head">
         <div className="board-titles">
           <span className="muted small">{COMMUNITY.name}</span>

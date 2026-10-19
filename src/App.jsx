@@ -5,6 +5,7 @@ import Publish from './screens/Publish.jsx';
 import Mine from './screens/Mine.jsx';
 import Alerts from './screens/Alerts.jsx';
 import BottomNav from './components/BottomNav.jsx';
+import TopNav from './components/TopNav.jsx';
 import UserSwitcher from './components/UserSwitcher.jsx';
 
 // ניתוב פשוט על בסיס hash, כדי שלינק לפריט ששותף בווצאפ יעבוד גם בלי שרת
@@ -43,6 +44,7 @@ export default function App() {
   return (
     <div className="app">
       <UserSwitcher />
+      <TopNav current={route.screen} />
       <main className={withNav ? 'with-nav' : ''}>{screen}</main>
       {withNav && <BottomNav current={route.screen} />}
     </div>
