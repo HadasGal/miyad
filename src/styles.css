@@ -256,6 +256,31 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .note-row.is-new .note-dot { background: var(--accent); }
 .note-row.is-new { font-weight: 500; }
 
+/* פתיחה והרשמה */
+.demo-actions { display: flex; gap: 12px; }
+.welcome { display: flex; flex-direction: column; gap: 32px; padding: 32px var(--gutter) 40px; min-height: 100dvh; }
+.welcome-text { display: flex; flex-direction: column; gap: 16px; }
+.brand-lockup { display: flex; align-items: baseline; gap: 10px; }
+.brand-big { font-size: 36px; font-weight: 700; color: var(--accent); line-height: 1; }
+.welcome-h { font-size: 30px; font-weight: 700; line-height: 1.2; margin-top: 8px; }
+.welcome-sub { font-size: 17px; line-height: 1.6; color: var(--ink-2); max-width: 46ch; }
+.welcome-points { display: flex; flex-direction: column; gap: 10px; }
+.welcome-points li { display: flex; align-items: center; gap: 12px; font-size: 15px; }
+.point-icon { width: 36px; height: 36px; border-radius: 18px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.welcome-cta { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.welcome-cta .muted { text-align: center; line-height: 1.5; }
+.welcome-visual { position: relative; height: 260px; }
+.welcome-card { position: absolute; width: 58%; background: var(--surface); border-radius: var(--r-card); overflow: hidden; box-shadow: var(--shadow); }
+.welcome-card:nth-child(1) { inset-inline-start: 0; top: 0; transform: rotate(-3deg); z-index: 3; }
+.welcome-card:nth-child(2) { inset-inline-end: 0; top: 36px; transform: rotate(4deg); z-index: 2; }
+.welcome-card:nth-child(3) { inset-inline-start: 20%; top: 110px; transform: rotate(-1deg); z-index: 1; }
+.join-hero { width: 72px; height: 72px; border-radius: 36px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; }
+.demo-note { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 16px; border: 1px dashed var(--muted); background: var(--surface); line-height: 1.5; }
+.field-err { color: var(--held-ink); background: var(--held); padding: 8px 12px; border-radius: 12px; font-size: 14px; margin-top: -8px; }
+.field input[aria-invalid="true"] { border-color: var(--held-ink); }
+.ltr-inline { direction: ltr; unicode-bidi: isolate; font-weight: 500; color: var(--ink); }
+.screen.join { max-width: 480px; }
+
 /* ───────── רספונסיבי ─────────
    עד 767: טלפון, כמו שהיה. 768 עד 1023: טאבלט, תוכן רחב יותר וניווט תחתון.
    1024 ומעלה: דסקטופ, ניווט עליון, לוח רחב ועמוד פריט בשתי עמודות. */
@@ -314,6 +339,23 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 
   .sticky-cta { position: static; background: none; padding: 8px 0 0; }
   .sticky-cta .btn { width: auto; min-width: 240px; }
+}
+
+@media (min-width: 768px) {
+  .welcome { max-width: 760px; margin: 0 auto; padding-top: 56px; }
+  .welcome-h { font-size: 40px; }
+  .welcome-cta { flex-direction: row; flex-wrap: wrap; }
+  .welcome-cta .btn { width: auto; min-width: 200px; }
+  .welcome-cta .muted { width: 100%; text-align: start; }
+  .welcome-visual { height: 320px; }
+  .welcome-card { width: 300px; }
+}
+
+@media (min-width: 1024px) {
+  .welcome { max-width: 1240px; flex-direction: row; align-items: center; gap: 64px; padding: 64px var(--gutter); }
+  .welcome-text { flex: 1.1; }
+  .welcome-visual { flex: 1; height: 440px; }
+  .welcome-h { font-size: 48px; }
 }
 
 @media (hover: hover) and (min-width: 768px) {

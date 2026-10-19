@@ -18,7 +18,10 @@ export default function UserSwitcher() {
           {USERS.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
         </select>
       </label>
-      <button className="demo-reset" onClick={reset}>איפוס</button>
+      <div className="demo-actions">
+        <button className="demo-reset" onClick={reset}>איפוס</button>
+        <button className="demo-reset" onClick={() => { dispatch({ type: 'exitDemo' }); window.location.hash = '/'; }}>יציאה</button>
+      </div>
     </div>
   );
 }

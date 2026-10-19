@@ -8,8 +8,13 @@ import { isDone } from './utils.js';
 
 const STORAGE_KEY = 'miyad:v1';
 
-function initialState() {
+// כניסה: mode הוא null (עוד לא נכנסה), 'demo' (צופה בדמו), או 'pending' (נרשמה ומחכה לאישור).
+// בדמו ההרשמה מדומה. ב-Firebase: לינק למייל (Auth), והאישור של מנהלת הקהילה ב-Firestore.
+const NO_SESSION = { mode: null, email: '', verified: false, name: '', street: '', phone: '' };
+
+function initialState(session = NO_SESSION) {
   return {
+    session,
     currentUserId: 'dana',
     items: buildInitialItems(),
     alerts: INITIAL_ALERTS,
@@ -20,7 +25,7 @@ function initialState() {
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) return { session: NO_SESSION, ...JSON.parse(raw) };
   } catch (e) {
     // אחסון חסום או פגום: מתחילים מחדש
   }
@@ -83,6 +88,11 @@ export const REOPEN_WINDOW = 7 * 24 * 60 * 60 * 1000;
 export function canReopen(item, now = Date.now()) {
   return isDone(item.status) && now - (item.closedAt ?? now) < REOPEN_WINDOW;
 }
+
+// בדיקות הרשמה. כאן ולא במסך, כדי שהשרת יוכל לאכוף את אותם כללים.
+export const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+const normalizePhone = (phone) => phone.replace(/\D/g, '');
+export const isValidPhone = (phone) => /^05\d{8}$/.test(normalizePhone(phone));
 
 // הרשימות של "שלי". כאן ולא במסך, כדי שהכללים יישארו במקום אחד.
 export function myLists(state, userId) {
@@ -283,8 +293,33 @@ function reducer(state, action) {
       };
     }
 
+    // איפוס מחזיר את נתוני הדמו להתחלה, אבל לא מוציא מהדמו
     case 'reset':
-      return initialState();
+      return initialState(state.session);
+
+    case 'enterDemo':
+      return { ...state, session: { ...state.session, mode: 'demo' } };
+
+    case 'exitDemo':
+      return { ...state, session: { ...state.session, mode: state.session.name ? 'pending' : null } };
+
+    // הרשמה: מייל → לינק במייל → פרטים → ממתינה לאישור
+    case 'joinEmail':
+      if (!isValidEmail(action.email)) return state;
+      return { ...state, session: { ...NO_SESSION, email: action.email.trim() } };
+
+    case 'joinVerify':
+      if (!state.session.email) return state;
+      return { ...state, session: { ...state.session, verified: true } };
+
+    case 'joinDetails': {
+      const { name, street, phone } = action;
+      if (!state.session.verified || !name.trim() || !street.trim() || !isValidPhone(phone)) return state;
+      return {
+        ...state,
+        session: { ...state.session, name: name.trim(), street: street.trim(), phone: normalizePhone(phone), mode: 'pending' },
+      };
+    }
 
     default:
       return state;
