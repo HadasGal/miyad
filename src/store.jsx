@@ -45,11 +45,36 @@ function updateItem(state, id, fn) {
   return { ...state, items: state.items.map((it) => (it.id === id ? fn(it) : it)) };
 }
 
-function matchesAlert(item, query) {
+// התאמה סלחנית לעברית: מורידים סיומת אחת (רבים, סמיכות, נקבה) מכל מילה,
+// כך ש"אופניים" ימצא "אופני ילדים", ו"ספרים" ימצא "ספר". עדיין לא סמנטי:
+// "ספה" לא תמצא "כורסה". מחליפים את הפונקציה הזו כשיהיה AI (החלטה 8).
+const SUFFIXES = ['יים', 'ים', 'ות', 'י', 'ה', 'ת'];
+function stem(word) {
+  for (const s of SUFFIXES) {
+    if (word.endsWith(s) && word.length - s.length >= 2) return word.slice(0, -s.length);
+  }
+  return word;
+}
+// אותיות סופיות: "עציץ" ו"עציצי" צריכים להגיע לאותו שורש
+const FINALS = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
+const unfinal = (w) => w.replace(/[ךםןףץ]/g, (c) => FINALS[c]);
+const stems = (text) => text.split(/[\s,.\-–־׳"'״]+/).filter(Boolean).map((w) => unfinal(stem(w)));
+
+export function matchesQuery(item, query) {
   const q = query.trim();
   if (!q) return false;
   const cat = CATEGORIES.find((c) => c.id === item.category)?.label ?? '';
-  return item.title.includes(q) || cat.includes(q);
+  const text = `${item.title} ${cat}`;
+  if (text.includes(q)) return true;
+  const have = new Set(stems(text));
+  return stems(q).every((s) => have.has(s));
+}
+
+// מה שכבר עכשיו בלוח ומתאים לחיפוש: זמין או שמור, ולא של מי שמחפשת
+export function matchingItems(state, query, userId) {
+  return state.items
+    .filter((it) => !isDone(it.status) && it.ownerId !== userId && matchesQuery(it, query))
+    .sort((a, b) => b.createdAt - a.createdAt);
 }
 
 // פריט שנסגר נשאר ב"שלי" שבוע, ורק בזמן הזה אפשר להחזיר אותו ללוח.
@@ -88,7 +113,7 @@ function reducer(state, action) {
       let next = { ...state, items: [newItem, ...state.items] };
       // התראות: כל מי ששמרה חיפוש שמתאים לפריט, חוץ מהמוסרת עצמה
       for (const a of state.alerts) {
-        if (a.userId !== me && matchesAlert(newItem, a.query)) {
+        if (a.userId !== me && matchesQuery(newItem, a.query)) {
           next = notify(next, a.userId, `מה שחיפשת הגיע: ${newItem.title}`, newItem.id);
         }
       }

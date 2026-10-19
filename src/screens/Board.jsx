@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useStore } from '../store.jsx';
+import { matchesQuery, useStore } from '../store.jsx';
 import { COMMUNITY, CATEGORIES } from '../data/mockData.js';
 import { Photo, StatusPill } from '../components/Bits.jsx';
 import Icon from '../components/Icon.jsx';
@@ -14,7 +14,8 @@ export default function Board() {
   const q = query.trim();
   const items = state.items
     .filter((it) => cat === 'all' || it.category === cat)
-    .filter((it) => !q || it.title.includes(q))
+    // אותה התאמה כמו בהתראות, כדי שחיפוש והתראה לא יחשבו אחרת
+    .filter((it) => !q || matchesQuery(it, q))
     // זמינים קודם, ומה שנמסר יורד לסוף
     .sort((a, b) => (isDone(a.status) - isDone(b.status)) || b.createdAt - a.createdAt);
 

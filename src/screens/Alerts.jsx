@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useStore } from '../store.jsx';
+import { matchingItems, useStore } from '../store.jsx';
+import { Photo, StatusPill } from '../components/Bits.jsx';
 import Icon from '../components/Icon.jsx';
 import { timeAgo } from '../utils.js';
 
@@ -8,7 +9,8 @@ export default function Alerts() {
   const [query, setQuery] = useState('');
 
   const mine = state.notifications.filter((n) => n.userId === me.id);
-  const searches = state.alerts.filter((a) => a.userId === me.id);
+  // החדש למעלה, כדי שמה ששמרת עכשיו יופיע מיד עם התוצאות שלו
+  const searches = state.alerts.filter((a) => a.userId === me.id).reverse();
 
   // צילום של מה שהיה חדש כשנכנסנו, כדי שההדגשה תישאר בזמן הקריאה.
   // מתעדכן אם מחליפים משתמשת בזמן שהמסך פתוח.
@@ -33,22 +35,44 @@ export default function Alerts() {
 
       <section className="stack-8" aria-labelledby="searches-h">
         <h2 id="searches-h" className="h2">מה את מחפשת</h2>
-        <p className="muted small">כשמישהי תפרסם משהו שמתאים, תקבלי התראה. בגרסה המלאה גם במייל.</p>
+        <p className="muted small">נראה לך מה כבר יש בלוח, ונעדכן כשמישהי תפרסם עוד. בגרסה המלאה גם במייל.</p>
         <form className="search" onSubmit={add}>
           <Icon name="bell" size={20} />
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ספה, אופניים, מיטת תינוק" aria-label="חיפוש חדש" />
           <button className="btn-small" type="submit" disabled={!query.trim()}>שמירה</button>
         </form>
         {searches.length > 0 && (
-          <ul className="saved">
-            {searches.map((a) => (
-              <li key={a.id} className="saved-chip">
-                {a.query}
-                <button aria-label={`מחיקת ${a.query}`} onClick={() => dispatch({ type: 'removeAlert', id: a.id })}>
-                  <Icon name="close" size={14} stroke={2.5} />
-                </button>
-              </li>
-            ))}
+          <ul className="saved-list">
+            {searches.map((a) => {
+              const found = matchingItems(state, a.query, me.id);
+              return (
+                <li key={a.id} className="saved-block">
+                  <div className="saved-head">
+                    <Icon name="bell" size={18} />
+                    <strong className="grow">{a.query}</strong>
+                    <span className="muted small">{found.length > 0 ? `${found.length} בלוח עכשיו` : 'עוד אין'}</span>
+                    <button className="saved-x" aria-label={`מחיקת ${a.query}`} onClick={() => dispatch({ type: 'removeAlert', id: a.id })}>
+                      <Icon name="close" size={14} stroke={2.5} />
+                    </button>
+                  </div>
+                  {found.length > 0 ? (
+                    <ul className="saved-matches">
+                      {found.map((it) => (
+                        <li key={it.id}>
+                          <a href={`#/item/${it.id}`} className="saved-match">
+                            <Photo item={it} className="saved-thumb" />
+                            <span className="grow">{it.title}</span>
+                            <StatusPill item={it} />
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="muted small">כשמישהי תפרסם, תקבלי התראה.</p>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
