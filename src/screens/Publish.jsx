@@ -14,6 +14,7 @@ function mockRecognize() {
   return new Promise((resolve) => setTimeout(() => resolve(s), 1400));
 }
 
+const HIDE_BULK_NOTE = 'miyad:hide-bulk-note';
 const newId = () => Math.random().toString(36).slice(2, 10);
 
 export default function Publish() {
@@ -35,6 +36,24 @@ export default function Publish() {
     alive.current = true;
     return () => { alive.current = false; };
   }, []);
+
+  // לפני העלאה מרובה: חלון שמסביר את המגבלה, עם "לא להציג שוב".
+  // ההעדפה נשמרת בדפדפן בלבד, כי היא נוחות אישית ולא חלק מכללי המוצר.
+  const dialogRef = useRef(null);
+  const [dontShow, setDontShow] = useState(false);
+  const openBulk = () => {
+    let hidden = false;
+    try { hidden = localStorage.getItem(HIDE_BULK_NOTE) === '1'; } catch { hidden = false; }
+    if (hidden) galleryRef.current?.click();
+    else dialogRef.current?.showModal();
+  };
+  const confirmBulk = () => {
+    if (dontShow) {
+      try { localStorage.setItem(HIDE_BULK_NOTE, '1'); } catch { /* אחסון חסום: פשוט נציג שוב */ }
+    }
+    dialogRef.current?.close();
+    galleryRef.current?.click();
+  };
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const setDraft = (key, k, v) => setDrafts((ds) => ds.map((d) => (d.key === key ? { ...d, [k]: v } : d)));
@@ -139,7 +158,7 @@ export default function Publish() {
           <input ref={galleryRef} type="file" accept="image/*" multiple hidden onChange={onFiles} />
           {quota.left > 1 ? (
             <>
-              <button className="btn btn-ghost" onClick={() => galleryRef.current?.click()}>
+              <button className="btn btn-ghost" onClick={openBulk}>
                 <Icon name="grid" size={20} /> כמה פריטים בבת אחת
               </button>
               <p className="muted small center">כל תמונה הופכת לפריט נפרד. אפשר עד {quota.left} בשעה הקרובה.</p>
@@ -202,12 +221,16 @@ export default function Publish() {
 
       {stage === 'bulk' && (
         <div className="stack-16">
-          <p className="ai-note"><Icon name="sparkle" size={22} /> מילאנו כל פריט לפי התמונה שלו. אפשר לשנות הכל.</p>
           {trimmed > 0 && (
-            <p className="info-row">
-              <Icon name="refresh" size={20} /> אפשר עד {PUBLISH_LIMIT} פריטים בשעה, אז לקחנו את {drafts.length} הראשונות. {trimmed} לא נכנסו.
-            </p>
+            <div className="notice-warn" role="alert">
+              <strong className="notice-title">{trimmed === 1 ? 'תמונה אחת לא נכנסה' : `${trimmed} תמונות לא נכנסו`}</strong>
+              <span>
+                אפשר לפרסם עד {PUBLISH_LIMIT} פריטים בשעה, אז לקחנו רק את {drafts.length} הראשונות.
+                את השאר אפשר לפרסם אחר כך.
+              </span>
+            </div>
           )}
+          <p className="ai-note"><Icon name="sparkle" size={22} /> מילאנו כל פריט לפי התמונה שלו. אפשר לשנות הכל.</p>
 
           <ul className="drafts">
             {drafts.map((d, i) => (
@@ -250,6 +273,25 @@ export default function Publish() {
       )}
 
       {stage === 'published' && <Published items={published} />}
+
+      <dialog ref={dialogRef} className="sheet-dialog" aria-labelledby="bulk-h">
+        <div className="stack-16">
+          <span className="drop-icon"><Icon name="grid" size={28} /></span>
+          <h2 id="bulk-h" className="h2">עד {PUBLISH_LIMIT} פריטים בשעה</h2>
+          <p className="muted">
+            כל תמונה שתבחרי תהפוך לפריט נפרד. כדי שהלוח והקבוצה לא יוצפו, אפשר לפרסם עד {PUBLISH_LIMIT} פריטים בשעה.
+            כרגע נשארו לך <strong className="dialog-count">{quota.left}</strong>. אם תבחרי יותר, ניקח את הראשונות.
+          </p>
+          <label className="check-row">
+            <input type="checkbox" checked={dontShow} onChange={(e) => setDontShow(e.target.checked)} />
+            לא להציג את זה שוב
+          </label>
+          <div className="stack-8">
+            <button className="btn btn-primary" onClick={confirmBulk}>לבחור תמונות</button>
+            <button className="btn btn-ghost" onClick={() => dialogRef.current?.close()}>ביטול</button>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 }

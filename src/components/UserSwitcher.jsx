@@ -5,6 +5,11 @@ import { useStore } from '../store.jsx';
 // בגרסה עם התחברות אמיתית, הפס הזה נעלם.
 export default function UserSwitcher() {
   const { state, dispatch } = useStore();
+  // איפוס מחזיר גם את חלון ההסבר על העלאה מרובה, כדי שדמו חדש יתחיל נקי
+  const reset = () => {
+    try { localStorage.removeItem('miyad:hide-bulk-note'); } catch { /* אחסון חסום */ }
+    dispatch({ type: 'reset' });
+  };
   return (
     <div className="demo-bar">
       <label className="demo-switch">
@@ -13,7 +18,7 @@ export default function UserSwitcher() {
           {USERS.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
         </select>
       </label>
-      <button className="demo-reset" onClick={() => dispatch({ type: 'reset' })}>איפוס</button>
+      <button className="demo-reset" onClick={reset}>איפוס</button>
     </div>
   );
 }
