@@ -12,7 +12,7 @@ export function Avatar({ userId, size = 44 }) {
 
 export function StatusPill({ item }) {
   const kind = isDone(item.status) ? 'done' : item.status;
-  return <span className={`pill pill-${kind}`}>{statusLabel(item, (id) => userById(id)?.short ?? '')}</span>;
+  return <span className={`pill pill-${kind}`}>{statusLabel(item)}</span>;
 }
 
 export function Photo({ item, className = '' }) {

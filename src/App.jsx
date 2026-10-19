@@ -36,7 +36,7 @@ export default function App() {
   switch (route.screen) {
     case 'item': screen = <ItemPage id={route.id} />; break;
     case 'publish': screen = <Publish />; break;
-    case 'mine': screen = <Mine />; break;
+    case 'mine': screen = <Mine key={route.id} initialTab={route.id} />; break;
     case 'alerts': screen = <Alerts />; break;
     default: screen = <Board />;
   }

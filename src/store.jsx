@@ -84,6 +84,21 @@ export function canReopen(item, now = Date.now()) {
   return isDone(item.status) && now - (item.closedAt ?? now) < REOPEN_WINDOW;
 }
 
+// הרשימות של "שלי". כאן ולא במסך, כדי שהכללים יישארו במקום אחד.
+export function myLists(state, userId) {
+  const mine = (it) => it.ownerId === userId;
+  return {
+    // מה שמסרתי: פתוח, או נסגר בשבוע האחרון
+    given: state.items.filter((it) => mine(it) && (!isDone(it.status) || canReopen(it))),
+    // מה ששמור לי: מוסרת בחרה בי ועוד לא נמסר
+    reserved: state.items.filter((it) => !mine(it) && it.status === 'reserved' && it.chosenId === userId),
+    // מה שביקשתי ועוד מחכה, או לקחתי מבחוץ
+    requested: state.items.filter((it) => !mine(it)
+      && !(it.status === 'reserved' && it.chosenId === userId)
+      && (it.queue.some((q) => q.userId === userId) || it.takenBy === userId)),
+  };
+}
+
 // התור: הבאה בתור היא הראשונה לפי הסדר שלא דילגו עליה
 function nextInQueue(item, skipped) {
   return item.queue.find((q) => !skipped.includes(q.userId))?.userId ?? null;

@@ -11,10 +11,11 @@ export function timeAgo(ts) {
 
 export const isDone = (status) => status === 'given' || status === 'taken' || status === 'gone';
 
-export function statusLabel(item, nameOf) {
+// בלוח לא כתוב למי זה שמור: רק המוסרת ומי שנבחרה צריכות לדעת
+export function statusLabel(item) {
   switch (item.status) {
     case 'available': return 'זמין';
-    case 'reserved': return item.chosenId ? `שמור ל${nameOf(item.chosenId)}` : 'שמור';
+    case 'reserved': return 'שמור';
     case 'given': return 'נמסר';
     case 'taken':
     case 'gone': return 'נלקח';

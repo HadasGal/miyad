@@ -1,45 +1,45 @@
 import { useState } from 'react';
-import { canReopen, useStore } from '../store.jsx';
+import { myLists, useStore, userById } from '../store.jsx';
 import { Photo, StatusPill } from '../components/Bits.jsx';
 import { isDone, statusLabel, timeAgo } from '../utils.js';
 
-export default function Mine() {
-  const { state, dispatch, me } = useStore();
-  const [tab, setTab] = useState('given');
+const TABS = [
+  { id: 'given', label: 'מסרתי' },
+  { id: 'reserved', label: 'שמור לי' },
+  { id: 'requested', label: 'ביקשתי' },
+];
 
-  // מה שנסגר נשאר כאן שבוע, ורק מכאן אפשר להחזיר אותו ללוח
-  const given = state.items.filter((i) => i.ownerId === me.id && (!isDone(i.status) || canReopen(i)));
-  const requested = state.items.filter(
-    (i) => i.ownerId !== me.id && (i.queue.some((q) => q.userId === me.id) || i.takenBy === me.id)
-  );
-  const list = tab === 'given' ? given : requested;
+const EMPTY = {
+  given: { text: 'עוד לא מסרת כלום.', cta: 'לפרסם משהו', href: '#/publish' },
+  reserved: { text: 'עוד אין דברים ששמורים לך. כשמוסרת תבחר בך, זה יופיע כאן.', cta: 'לעבור על הלוח', href: '#/' },
+  requested: { text: 'אין בקשות פתוחות.', cta: 'לעבור על הלוח', href: '#/' },
+};
+
+// #/mine/reserved פותח ישר את "שמור לי"
+export default function Mine({ initialTab }) {
+  const { state, dispatch, me } = useStore();
+  const [tab, setTab] = useState(TABS.some((t) => t.id === initialTab) ? initialTab : 'given');
+
+  const lists = myLists(state, me.id);
+  const list = lists[tab];
+  const empty = EMPTY[tab];
 
   return (
     <div className="screen">
       <h1 className="h1">שלי</h1>
 
       <div className="tabs" role="tablist">
-        <button role="tab" aria-selected={tab === 'given'} className={`tab ${tab === 'given' ? 'is-on' : ''}`} onClick={() => setTab('given')}>
-          מסרתי ({given.length})
-        </button>
-        <button role="tab" aria-selected={tab === 'requested'} className={`tab ${tab === 'requested' ? 'is-on' : ''}`} onClick={() => setTab('requested')}>
-          ביקשתי ({requested.length})
-        </button>
+        {TABS.map((t) => (
+          <button key={t.id} role="tab" aria-selected={tab === t.id} className={`tab ${tab === t.id ? 'is-on' : ''}`} onClick={() => setTab(t.id)}>
+            {t.label} ({lists[t.id].length})
+          </button>
+        ))}
       </div>
 
       {list.length === 0 ? (
         <div className="empty">
-          {tab === 'given' ? (
-            <>
-              <p>עוד לא מסרת כלום.</p>
-              <a className="btn btn-primary" href="#/publish">לפרסם משהו</a>
-            </>
-          ) : (
-            <>
-              <p>עוד לא ביקשת כלום.</p>
-              <a className="btn btn-primary" href="#/">לעבור על הלוח</a>
-            </>
-          )}
+          <p>{empty.text}</p>
+          <a className="btn btn-primary" href={empty.href}>{empty.cta}</a>
         </div>
       ) : (
         <ul className="list">
@@ -62,8 +62,8 @@ export default function Mine() {
                 <div className="stack-2 grow">
                   <strong className="fw-500">{it.title}</strong>
                   <span className="muted small">
-                    {tab === 'given' && it.pickup === 'coordinate' && !isDone(it.status)
-                      ? `${it.queue.length} בתור`
+                    {tab === 'reserved' ? `${userById(it.ownerId).short} בחרה בך. אפשר לתאם איסוף.`
+                      : tab === 'given' && it.pickup === 'coordinate' && !isDone(it.status) ? `${it.queue.length} בתור`
                       : timeAgo(it.createdAt)}
                   </span>
                 </div>

@@ -240,7 +240,7 @@ function SeekerPanel({ item, owner }) {
     <div className="action-bar">
       <p className="muted center">
         {item.status === 'reserved'
-          ? `כרגע שמור ל${userById(item.chosenId).short}. אפשר להיכנס לתור למקרה שלא תאסוף.`
+          ? 'כרגע שמור למישהי. אפשר להיכנס לתור למקרה שלא תאסוף.'
           : active.length > 0 ? `${active.length} כבר ביקשו. אפשר להצטרף לתור.` : 'עוד אף אחת לא ביקשה.'}
       </p>
       <button className="btn btn-primary" onClick={() => act('request')}>אני רוצה</button>
