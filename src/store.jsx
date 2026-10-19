@@ -142,6 +142,9 @@ function nextInQueue(item, skipped) {
   return item.queue.find((q) => !skipped.includes(q.userId))?.userId ?? null;
 }
 
+// הראשונה בתור שעוד לא דילגו עליה. ברירת המחדל של המוסרת (החלטה 3).
+export const firstInQueue = (item) => nextInQueue(item, item.skipped);
+
 function reducer(state, action) {
   const me = state.currentUserId;
   const item = action.itemId ? state.items.find((i) => i.id === action.itemId) : null;
@@ -176,12 +179,20 @@ function reducer(state, action) {
       }));
 
     case 'choose': {
-      const next = updateItem(state, action.itemId, (it) => ({
+      let next = updateItem(state, action.itemId, (it) => ({
         ...it,
         status: 'reserved',
         chosenId: action.userId,
       }));
-      return notify(next, action.userId, `${nameOf(me)} בחרה בך. ${item.title} שמור לך`, action.itemId);
+      next = notify(next, action.userId, `${nameOf(me)} שמרה לך את ${item.title}`, action.itemId);
+      // חריגה מהסדר: מי שהייתה לפני הנבחרת יודעת, בלי שם ובלי סיבה.
+      // היא נשארת בתור, ואם הנבחרת לא תאסוף, "לא נאסף" יחזיר אליה.
+      const active = item.queue.filter((q) => !item.skipped.includes(q.userId));
+      const ahead = active.slice(0, active.findIndex((q) => q.userId === action.userId));
+      for (const q of ahead) {
+        next = notify(next, q.userId, `${item.title} נשמר כרגע למישהי אחרת. את נשארת בתור, ואם זה ישתחרר תקבלי עדכון.`, item.id);
+      }
+      return next;
     }
 
     case 'noShow': {

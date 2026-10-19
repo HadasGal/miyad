@@ -1,4 +1,5 @@
-import { useStore, userById } from '../store.jsx';
+import { useState } from 'react';
+import { firstInQueue, useStore, userById } from '../store.jsx';
 import { Avatar, Photo, StatusPill } from '../components/Bits.jsx';
 import Icon from '../components/Icon.jsx';
 import { isDone, itemLink, timeAgo, waShare, waToPerson } from '../utils.js';
@@ -71,6 +72,7 @@ function ShareButton({ item, quiet }) {
 
 function OwnerPanel({ item }) {
   const { dispatch } = useStore();
+  const [picking, setPicking] = useState(false);
   const act = (type, extra = {}) => dispatch({ type, itemId: item.id, ...extra });
 
   // נמסר. בלי chosenId: המוסרת סגרה בעצמה, למשל אחרי תיאום בקבוצה
@@ -117,8 +119,12 @@ function OwnerPanel({ item }) {
     );
   }
 
-  // תיאום איסוף: התור
+  // תיאום איסוף: התור. ברירת המחדל היא הראשונה בתור, בלחיצה אחת.
+  // לבחור מישהי אחרת אפשר, אבל זה צעד נוסף ומודע (החלטה 3).
   const chosenIdx = item.queue.findIndex((q) => q.userId === item.chosenId);
+  const first = item.chosenId ? null : firstInQueue(item);
+  const firstUser = first && userById(first);
+  const others = first ? item.queue.filter((q) => q.userId !== first && !item.skipped.includes(q.userId)) : [];
   return (
     <section className="panel" aria-labelledby="queue-h">
       <div className="row-between">
@@ -131,6 +137,17 @@ function OwnerPanel({ item }) {
           <p className="muted">עוד אף אחת לא ביקשה. שיתוף בקבוצה יעזור.</p>
           <ShareButton item={item} />
         </>
+      )}
+
+      {firstUser && (
+        <div className="first-card">
+          <span className="muted small">{firstUser.short} ביקשה ראשונה</span>
+          <button className="btn btn-primary" onClick={() => act('choose', { userId: first })}>לתת ל{firstUser.short}</button>
+          {others.length > 0 && !picking && (
+            <button className="btn-link" onClick={() => setPicking(true)}>לבחור מישהי אחרת מהתור</button>
+          )}
+          {picking && <p className="muted small center">בחרי מהתור. מי שלפניה תקבל עדכון שזה נשמר למישהי אחרת.</p>}
+        </div>
       )}
 
       <ol className="queue">
@@ -147,8 +164,8 @@ function OwnerPanel({ item }) {
                   <strong className="fw-500">{u.short}</strong>
                   <span className="muted small">{skipped ? 'לא אספה' : `ביקשה ${timeAgo(q.at)}`}</span>
                 </div>
-                {!item.chosenId && !skipped && (
-                  <button className="btn-small" onClick={() => act('choose', { userId: u.id })}>בחירה</button>
+                {picking && !item.chosenId && !skipped && q.userId !== first && (
+                  <button className="btn-small" onClick={() => { act('choose', { userId: u.id }); setPicking(false); }}>בחירה</button>
                 )}
                 {item.chosenId && !chosen && !skipped && i > chosenIdx && <span className="muted small">ממתינה</span>}
               </div>
@@ -200,7 +217,7 @@ function SeekerPanel({ item, owner }) {
   if (item.chosenId === me.id) {
     return (
       <div className="action-bar">
-        <p className="center"><strong>{owner.short} בחרה בך. זה שמור לך.</strong></p>
+        <p className="center"><strong>{owner.short} שמרה לך את זה.</strong></p>
         <a className="btn btn-primary" target="_blank" rel="noreferrer"
           href={waToPerson(owner.phone, `היי ${owner.short}, לגבי ${item.title}. מתי נוח לאסוף?`)}>
           <Icon name="chat" size={20} /> תיאום איסוף בווצאפ
@@ -210,7 +227,10 @@ function SeekerPanel({ item, owner }) {
   }
 
   const active = item.queue.filter((q) => !item.skipped.includes(q.userId));
-  const myPos = active.findIndex((q) => q.userId === me.id);
+  // המקום שלי מחושב בלי מי ששמור לה כרגע: אם דנה שמרה למישהי אחרת, אני "הבאה", לא "הראשונה"
+  const waiting = active.filter((q) => q.userId !== item.chosenId);
+  const myPos = waiting.findIndex((q) => q.userId === me.id);
+  const held = item.status === 'reserved';
 
   if (myPos >= 0) {
     return (
@@ -218,8 +238,12 @@ function SeekerPanel({ item, owner }) {
         <div className="pos-row">
           <span className="pos-num">{myPos + 1}</span>
           <div className="stack-2">
-            <strong className="fw-500">את במקום {myPos + 1} בתור</strong>
-            <span className="muted small">נעדכן אם {owner.short} תבחר בך</span>
+            <strong className="fw-500">
+              {myPos > 0 ? `את במקום ${myPos + 1} בתור` : held ? 'את הבאה בתור' : 'את הראשונה בתור'}
+            </strong>
+            <span className="muted small">
+              {held ? 'כרגע שמור למישהי. אם זה ישתחרר, תקבלי עדכון.' : `${owner.short} נותנת לפי הסדר. אם משהו ישתנה, תקבלי עדכון.`}
+            </span>
           </div>
         </div>
         <button className="btn btn-ghost" onClick={() => act('cancelRequest')}>יציאה מהתור</button>
