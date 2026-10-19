@@ -99,6 +99,44 @@ export function myLists(state, userId) {
   };
 }
 
+// מכסת פרסום: עד 5 פריטים לשעה לכל משתמשת, גם אחד אחד וגם בהעלאה מרובה.
+// שומר על הלוח ועל הקבוצה מהצפה. resetsAt: מתי מתפנה המקום הבא.
+export const PUBLISH_LIMIT = 5;
+const PUBLISH_WINDOW = 60 * 60 * 1000;
+export function publishQuota(state, userId, now = Date.now()) {
+  const recent = state.items
+    .filter((it) => it.ownerId === userId && now - it.createdAt < PUBLISH_WINDOW)
+    .map((it) => it.createdAt)
+    .sort((a, b) => a - b);
+  return {
+    left: Math.max(0, PUBLISH_LIMIT - recent.length),
+    resetsAt: recent.length >= PUBLISH_LIMIT ? recent[recent.length - PUBLISH_LIMIT] + PUBLISH_WINDOW : now,
+  };
+}
+
+function publishOne(state, me, item) {
+  const newItem = {
+    id: uid(),
+    ownerId: me,
+    createdAt: Date.now(),
+    status: 'available',
+    chosenId: null,
+    skipped: [],
+    takenBy: null,
+    reportedBy: null,
+    queue: [],
+    ...item,
+  };
+  let next = { ...state, items: [newItem, ...state.items] };
+  // התראות: כל מי ששמרה חיפוש שמתאים לפריט, חוץ מהמוסרת עצמה
+  for (const a of state.alerts) {
+    if (a.userId !== me && matchesQuery(newItem, a.query)) {
+      next = notify(next, a.userId, `מה שחיפשת הגיע: ${newItem.title}`, newItem.id);
+    }
+  }
+  return next;
+}
+
 // התור: הבאה בתור היא הראשונה לפי הסדר שלא דילגו עליה
 function nextInQueue(item, skipped) {
   return item.queue.find((q) => !skipped.includes(q.userId))?.userId ?? null;
@@ -112,27 +150,14 @@ function reducer(state, action) {
     case 'switchUser':
       return { ...state, currentUserId: action.userId };
 
-    case 'publish': {
-      const newItem = {
-        id: uid(),
-        ownerId: me,
-        createdAt: Date.now(),
-        status: 'available',
-        chosenId: null,
-        skipped: [],
-        takenBy: null,
-        reportedBy: null,
-        queue: [],
-        ...action.item,
-      };
-      let next = { ...state, items: [newItem, ...state.items] };
-      // התראות: כל מי ששמרה חיפוש שמתאים לפריט, חוץ מהמוסרת עצמה
-      for (const a of state.alerts) {
-        if (a.userId !== me && matchesQuery(newItem, a.query)) {
-          next = notify(next, a.userId, `מה שחיפשת הגיע: ${newItem.title}`, newItem.id);
-        }
-      }
-      return next;
+    case 'publish':
+      if (publishQuota(state, me).left < 1) return state;
+      return publishOne(state, me, action.item);
+
+    // העלאה מרובה: כל תמונה פריט נפרד, ולא יותר ממה שנשאר במכסה
+    case 'publishMany': {
+      const room = publishQuota(state, me).left;
+      return action.items.slice(0, room).reduce((next, it) => publishOne(next, me, it), state);
     }
 
     case 'request': {

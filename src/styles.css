@@ -196,17 +196,26 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .thumb { width: 88px; height: 88px; border-radius: 18px; overflow: hidden; flex-shrink: 0; }
 .field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); }
 .field legend { margin-bottom: 8px; font-size: 16px; font-weight: 500; color: var(--ink); padding: 0; }
-.field input, .field textarea { min-height: 52px; padding: 12px 14px; border-radius: var(--r-field); border: 1px solid var(--line); background: var(--surface); font-size: 16px; color: var(--ink); resize: vertical; }
-.field input:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
+.field input, .field textarea, .field select { min-height: 52px; padding: 12px 14px; border-radius: var(--r-field); border: 1px solid var(--line); background: var(--surface); font-size: 16px; color: var(--ink); resize: vertical; }
+.field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--accent); }
+.drafts { display: flex; flex-direction: column; gap: 12px; }
+.draft { display: flex; gap: 12px; align-items: flex-start; padding: 12px; background: var(--surface); border-radius: var(--r-card); border: 1px solid var(--line); }
+.draft-thumb { width: 72px; height: 72px; border-radius: 14px; overflow: hidden; flex-shrink: 0; }
+.draft-row { display: flex; gap: 8px; }
+.draft .field input, .draft .field select { min-height: 44px; padding: 8px 12px; font-size: 15px; background: var(--bg); }
+.draft-x { width: 44px; height: 44px; margin: -6px; border: 0; background: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .pickup-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .pickup { text-align: start; padding: 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; cursor: pointer; color: var(--ink); }
 .pickup strong { font-size: 15px; font-weight: 500; }
 .pickup.is-on { border: 2px solid var(--accent); padding: 13px; }
 .sticky-cta { position: sticky; bottom: 0; padding: 12px 0 calc(16px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(to top, var(--bg) 70%, transparent); }
+.cta-hint { padding-top: 8px; }
 .wa-preview { padding: 16px; border-radius: 20px; background: var(--wa-bg); display: flex; flex-direction: column; gap: 8px; }
 .wa-bubble { align-self: flex-start; width: min(260px, 100%); background: var(--wa-bubble); border-radius: 14px; padding: 6px; }
 .wa-card { background: var(--surface); border-radius: 10px; overflow: hidden; }
 .wa-photo { height: 130px; }
+.wa-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; height: 130px; }
+.wa-photos > * { min-height: 0; font-size: 11px; }
 .wa-meta { padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
 .info-row { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; background: var(--surface); border-radius: 14px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
 .info-row svg { color: var(--accent); flex-shrink: 0; margin-top: 2px; }

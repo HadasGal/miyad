@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useStore } from '../store.jsx';
+import { PUBLISH_LIMIT, publishQuota, useStore } from '../store.jsx';
 import { AI_SUGGESTIONS, CATEGORIES, COMMUNITY } from '../data/mockData.js';
 import Icon from '../components/Icon.jsx';
 import { Photo } from '../components/Bits.jsx';
@@ -14,15 +14,22 @@ function mockRecognize() {
   return new Promise((resolve) => setTimeout(() => resolve(s), 1400));
 }
 
+const newId = () => Math.random().toString(36).slice(2, 10);
+
 export default function Publish() {
-  const { dispatch } = useStore();
-  const [stage, setStage] = useState('empty'); // empty | thinking | form | published
+  const { state, dispatch, me } = useStore();
+  const quota = publishQuota(state, me.id);
+  const [stage, setStage] = useState('empty'); // empty | thinking | form | bulk | published
   const [form, setForm] = useState({
     photo: null, title: '', category: 'other', condition: '', description: '',
     pickup: 'outside', location: '',
   });
-  const [publishedId, setPublishedId] = useState(null);
-  const fileRef = useRef(null);
+  // העלאה מרובה: פריט לכל תמונה. איסוף ומיקום משותפים לכולם, ב-form.
+  const [drafts, setDrafts] = useState([]);
+  const [trimmed, setTrimmed] = useState(0);
+  const [published, setPublished] = useState([]);
+  const cameraRef = useRef(null);
+  const galleryRef = useRef(null);
   const alive = useRef(true);
   useEffect(() => {
     alive.current = true;
@@ -30,27 +37,78 @@ export default function Publish() {
   }, []);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const setDraft = (key, k, v) => setDrafts((ds) => ds.map((d) => (d.key === key ? { ...d, [k]: v } : d)));
 
-  const onFile = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const onFiles = async (e) => {
+    const files = [...(e.target.files ?? [])];
+    e.target.value = '';
+    if (!files.length) return;
+    const take = files.slice(0, quota.left);
+    setTrimmed(files.length - take.length);
     setStage('thinking');
-    let photo = null;
-    try { photo = await resizeImage(file); } catch { photo = null; }
-    const s = await mockRecognize();
+    const results = await Promise.all(take.map(async (file) => {
+      let photo = null;
+      try { photo = await resizeImage(file); } catch { photo = null; }
+      return { photo, ...(await mockRecognize()) };
+    }));
     if (!alive.current) return;
-    setForm((f) => ({ ...f, photo, ...s }));
-    setStage('form');
+    if (results.length === 1) {
+      setForm((f) => ({ ...f, ...results[0] }));
+      setStage('form');
+    } else {
+      setDrafts(results.map((r) => ({ key: newId(), description: '', ...r })));
+      setStage('bulk');
+    }
   };
 
+  const shared = { pickup: form.pickup, location: form.pickup === 'outside' ? form.location.trim() : '' };
+
   const publish = () => {
-    const id = Math.random().toString(36).slice(2, 10);
-    dispatch({ type: 'publish', item: { id, ...form, title: form.title.trim() } });
-    setPublishedId(id);
+    const item = { id: newId(), ...form, title: form.title.trim() };
+    dispatch({ type: 'publish', item });
+    setPublished([item]);
     setStage('published');
   };
 
-  const canPublish = form.title.trim().length > 1 && (form.pickup !== 'outside' || form.location.trim());
+  const publishAll = () => {
+    const items = drafts.map(({ key, ...d }) => ({ id: newId(), ...d, ...shared, title: d.title.trim() }));
+    dispatch({ type: 'publishMany', items });
+    setPublished(items);
+    setStage('published');
+  };
+
+  const pickupOk = form.pickup !== 'outside' || form.location.trim();
+  const canPublish = form.title.trim().length > 1 && pickupOk;
+  const canPublishAll = drafts.length > 0 && drafts.every((d) => d.title.trim().length > 1) && pickupOk;
+
+  // הכפתור הדביק מסתיר לפעמים את שדה המיקום, אז אומרים למה הוא כבוי
+  const missingLocation = <p className="muted small center cta-hint">כדי לפרסם, כתבי איפה זה מחכה בחוץ</p>;
+
+  const pickupFields = (
+    <>
+      <fieldset className="field">
+        <legend>{stage === 'bulk' ? 'איך אוספים? (לכל הפריטים)' : 'איך אוספים?'}</legend>
+        <div className="pickup-grid">
+          <button type="button" className={`pickup ${form.pickup === 'outside' ? 'is-on' : ''}`}
+            aria-pressed={form.pickup === 'outside'} onClick={() => setForm((f) => ({ ...f, pickup: 'outside' }))}>
+            <strong>מחכה בחוץ</strong>
+            <span className="muted small">מי שמגיעה ראשונה לוקחת</span>
+          </button>
+          <button type="button" className={`pickup ${form.pickup === 'coordinate' ? 'is-on' : ''}`}
+            aria-pressed={form.pickup === 'coordinate'} onClick={() => setForm((f) => ({ ...f, pickup: 'coordinate' }))}>
+            <strong>תיאום איסוף</strong>
+            <span className="muted small">נכנסים לתור ואת בוחרת</span>
+          </button>
+        </div>
+      </fieldset>
+
+      {form.pickup === 'outside' && (
+        <label className="field">איפה בדיוק?
+          <input value={form.location} onChange={set('location')} placeholder="על החומה ליד השער" />
+        </label>
+      )}
+    </>
+  );
 
   return (
     <div className="screen publish">
@@ -59,14 +117,36 @@ export default function Publish() {
         <a href="#/" className="icon-btn" aria-label="סגירה"><Icon name="close" size={18} /></a>
       </header>
 
-      {stage === 'empty' && (
+      {stage === 'empty' && quota.left === 0 && (
+        <div className="done-card">
+          <Icon name="refresh" size={32} />
+          <strong className="done-title">פרסמת {PUBLISH_LIMIT} פריטים בשעה האחרונה</strong>
+          <span className="muted">
+            ככה הלוח והקבוצה לא מוצפים. אפשר לפרסם שוב בעוד {Math.max(1, Math.ceil((quota.resetsAt - Date.now()) / 60000))} דקות.
+          </span>
+          <a className="btn btn-ghost" href="#/mine">לפריטים שלי</a>
+        </div>
+      )}
+
+      {stage === 'empty' && quota.left > 0 && (
         <div className="publish-empty">
-          <button className="drop" onClick={() => fileRef.current?.click()}>
+          <button className="drop" onClick={() => cameraRef.current?.click()}>
             <span className="drop-icon"><Icon name="camera" size={32} /></span>
             <strong className="drop-title">צלמי את מה שמוסרים</strong>
             <span className="muted">את השאר נמלא בשבילך</span>
           </button>
-          <input ref={fileRef} type="file" accept="image/*" capture="environment" hidden onChange={onFile} />
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" multiple hidden onChange={onFiles} />
+          <input ref={galleryRef} type="file" accept="image/*" multiple hidden onChange={onFiles} />
+          {quota.left > 1 ? (
+            <>
+              <button className="btn btn-ghost" onClick={() => galleryRef.current?.click()}>
+                <Icon name="grid" size={20} /> כמה פריטים בבת אחת
+              </button>
+              <p className="muted small center">כל תמונה הופכת לפריט נפרד. אפשר עד {quota.left} בשעה הקרובה.</p>
+            </>
+          ) : (
+            <p className="muted small center">אפשר עוד פריט אחד בשעה הקרובה.</p>
+          )}
           <button className="btn-link" onClick={() => setStage('form')}>להמשיך בלי תמונה</button>
         </div>
       )}
@@ -74,7 +154,7 @@ export default function Publish() {
       {stage === 'thinking' && (
         <div className="stack-16" aria-live="polite">
           <div className="thinking-photo" />
-          <div className="ai-note"><Icon name="sparkle" size={22} /> מזהה מה בתמונה...</div>
+          <div className="ai-note"><Icon name="sparkle" size={22} /> מזהה מה בתמונות...</div>
           <div className="skeleton" style={{ height: 52 }} />
           <div className="skeleton" style={{ height: 88 }} />
         </div>
@@ -111,41 +191,77 @@ export default function Publish() {
             <textarea rows="2" value={form.description} onChange={set('description')} placeholder="לא חובה" />
           </label>
 
-          <fieldset className="field">
-            <legend>איך אוספים?</legend>
-            <div className="pickup-grid">
-              <button type="button" className={`pickup ${form.pickup === 'outside' ? 'is-on' : ''}`}
-                aria-pressed={form.pickup === 'outside'} onClick={() => setForm((f) => ({ ...f, pickup: 'outside' }))}>
-                <strong>מחכה בחוץ</strong>
-                <span className="muted small">מי שמגיעה ראשונה לוקחת</span>
-              </button>
-              <button type="button" className={`pickup ${form.pickup === 'coordinate' ? 'is-on' : ''}`}
-                aria-pressed={form.pickup === 'coordinate'} onClick={() => setForm((f) => ({ ...f, pickup: 'coordinate' }))}>
-                <strong>תיאום איסוף</strong>
-                <span className="muted small">נכנסים לתור ואת בוחרת</span>
-              </button>
-            </div>
-          </fieldset>
-
-          {form.pickup === 'outside' && (
-            <label className="field">איפה בדיוק?
-              <input value={form.location} onChange={set('location')} placeholder="על החומה ליד השער" />
-            </label>
-          )}
+          {pickupFields}
 
           <div className="sticky-cta">
             <button className="btn btn-primary" disabled={!canPublish} onClick={publish}>פרסום ללוח</button>
+            {!pickupOk && missingLocation}
           </div>
         </div>
       )}
 
-      {stage === 'published' && <Published form={form} id={publishedId} />}
+      {stage === 'bulk' && (
+        <div className="stack-16">
+          <p className="ai-note"><Icon name="sparkle" size={22} /> מילאנו כל פריט לפי התמונה שלו. אפשר לשנות הכל.</p>
+          {trimmed > 0 && (
+            <p className="info-row">
+              <Icon name="refresh" size={20} /> אפשר עד {PUBLISH_LIMIT} פריטים בשעה, אז לקחנו את {drafts.length} הראשונות. {trimmed} לא נכנסו.
+            </p>
+          )}
+
+          <ul className="drafts">
+            {drafts.map((d, i) => (
+              <li key={d.key} className="draft">
+                <Photo item={d} className="draft-thumb" />
+                <div className="stack-8 grow">
+                  <label className="field">כותרת
+                    <input value={d.title} onChange={(e) => setDraft(d.key, 'title', e.target.value)} placeholder="מה זה?" />
+                  </label>
+                  <div className="draft-row">
+                    <label className="field grow">קטגוריה
+                      <select value={d.category} onChange={(e) => setDraft(d.key, 'category', e.target.value)}>
+                        {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+                      </select>
+                    </label>
+                    <label className="field grow">מצב
+                      <input value={d.condition} onChange={(e) => setDraft(d.key, 'condition', e.target.value)} />
+                    </label>
+                  </div>
+                </div>
+                {drafts.length > 1 && (
+                  <button className="draft-x" aria-label={`הסרת פריט ${i + 1}`}
+                    onClick={() => setDrafts((ds) => ds.filter((x) => x.key !== d.key))}>
+                    <Icon name="close" size={16} />
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          {pickupFields}
+
+          <div className="sticky-cta">
+            <button className="btn btn-primary" disabled={!canPublishAll} onClick={publishAll}>
+              פרסום {drafts.length} פריטים ללוח
+            </button>
+            {!pickupOk && missingLocation}
+          </div>
+        </div>
+      )}
+
+      {stage === 'published' && <Published items={published} />}
     </div>
   );
 }
 
-function Published({ form, id }) {
-  const text = `${form.title}${form.pickup === 'outside' && form.location ? `, ${form.location}` : ''}\n${itemLink(id)}`;
+// כרטיס שיתוף. בהעלאה מרובה: הודעה אחת לקבוצה עם כל הפריטים, לא חמש הודעות.
+function Published({ items }) {
+  const [first] = items;
+  const where = first.pickup === 'outside' ? `מחכה בחוץ, ${first.location}` : 'תיאום איסוף';
+  const text = items.length === 1
+    ? `${first.title}${first.pickup === 'outside' && first.location ? `, ${first.location}` : ''}\n${itemLink(first.id)}`
+    : `מוסרת ${items.length} דברים (${where}):\n${items.map((it) => `• ${it.title}\n${itemLink(it.id)}`).join('\n')}`;
+
   return (
     <div className="stack-16">
       <p className="muted">עכשיו שהשכנים יידעו.</p>
@@ -154,10 +270,18 @@ function Published({ form, id }) {
         <span className="muted small">ככה זה ייראה בקבוצה</span>
         <div className="wa-bubble">
           <div className="wa-card">
-            <Photo item={form} className="wa-photo" />
+            {items.length === 1 ? (
+              <Photo item={first} className="wa-photo" />
+            ) : (
+              <div className="wa-photos">
+                {items.slice(0, 4).map((it) => <Photo key={it.id} item={it} />)}
+              </div>
+            )}
             <div className="wa-meta">
-              <strong>{form.title}</strong>
-              <span className="muted small">{form.pickup === 'outside' ? `מחכה בחוץ, ${form.location}` : 'תיאום איסוף'}</span>
+              {items.length === 1
+                ? <strong>{first.title}</strong>
+                : <strong>{items.map((it) => it.title).join(' · ')}</strong>}
+              <span className="muted small">{where}</span>
               <span className="muted xsmall">מיד · {COMMUNITY.name}</span>
             </div>
           </div>
@@ -169,7 +293,9 @@ function Published({ form, id }) {
       <a className="btn btn-primary" href={waShare(text)} target="_blank" rel="noreferrer">
         <Icon name="chat" size={20} /> שיתוף בקבוצה
       </a>
-      <a className="btn btn-ghost" href={`#/item/${id}`}>לעמוד הפריט</a>
+      {items.length === 1
+        ? <a className="btn btn-ghost" href={`#/item/${first.id}`}>לעמוד הפריט</a>
+        : <a className="btn btn-ghost" href="#/mine">לפריטים שלי</a>}
     </div>
   );
 }
