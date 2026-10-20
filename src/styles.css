@@ -20,6 +20,14 @@
   --on-pop: #FFFFFF;
   --pop-soft: #FBE3D8;
   --pop-ink: #7A2E14;
+  /* תגיות על תמונה: תמיד בגווני היום, גם במצב כהה, כי התמונה לא משתנה עם הנושא */
+  --photo-available: #E3F0E6;
+  --photo-available-ink: #1F4A33;
+  --photo-reserved: #FCEFC7;
+  --photo-reserved-ink: #6B4E00;
+  --photo-done: #E4E6E3;
+  --photo-done-ink: #3F4642;
+  --photo-chip-shadow: 0 1px 2px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.22);
   --wa-bg: #E5DDD5;
   --wa-bubble: #DCF8C6;
   --r-card: 20px;
@@ -106,8 +114,9 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 
 /* כפתורים */
 .btn { min-height: 52px; padding: 0 20px; border-radius: 28px; border: 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 500; text-decoration: none; cursor: pointer; width: 100%; }
-.btn-primary { background: var(--accent); color: var(--accent-ink); }
-.btn-primary:hover { filter: brightness(1.08); color: var(--accent-ink); }
+/* פעולה ראשית = טרקוטה, בכל מקום. ירוק = מותג, סטטוס ובחירה (צ'יפ, לשונית פעילה) */
+.btn-primary { background: var(--pop-strong); color: var(--on-pop); }
+.btn-primary:hover { filter: brightness(1.08); color: var(--on-pop); }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; filter: none; }
 .btn-soft { background: var(--accent-soft); color: var(--accent-soft-ink); }
 .btn-ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
@@ -138,7 +147,7 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 /* הדגשה של מילה אחת בכותרת, כמו טוש */
 .mark { box-shadow: inset 0 -0.32em 0 var(--pop-soft); padding: 0 2px; }
 .brand-dot { color: var(--pop); }
-.tag-new { position: absolute; bottom: 10px; left: 10px; padding: 3px 9px; border-radius: 10px; background: var(--pop-strong); color: var(--on-pop); font-size: 12px; font-weight: 700; }
+.tag-new { position: absolute; bottom: 10px; left: 10px; padding: 5px 12px; border-radius: 14px; background: var(--pop-strong); color: var(--on-pop); font-size: 13px; font-weight: 700; box-shadow: var(--photo-chip-shadow); }
 .search { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 26px; color: var(--muted); }
 .search input { flex: 1; border: 0; outline: none; background: transparent; font-size: 16px; color: var(--ink); min-width: 0; }
 .search:focus-within { border-color: var(--accent); }
@@ -154,6 +163,11 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .card.is-done { opacity: 0.55; }
 .card-photo { position: relative; height: 120px; }
 .card-photo .pill { position: absolute; top: 10px; right: 10px; }
+/* סטטוס על תמונה: גדול יותר, אטום, עם צל שמפריד מכל תמונה, בהירה או כהה */
+.card-photo .pill, .item-hero > .pill { font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 14px; box-shadow: var(--photo-chip-shadow); }
+.card-photo .pill-available, .item-hero > .pill-available { background: var(--photo-available); color: var(--photo-available-ink); }
+.card-photo .pill-reserved, .item-hero > .pill-reserved { background: var(--photo-reserved); color: var(--photo-reserved-ink); }
+.card-photo .pill-done, .item-hero > .pill-done { background: var(--photo-done); color: var(--photo-done-ink); }
 .card-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; }
 .card-title { font-size: 15px; font-weight: 500; line-height: 1.3; }
 .empty { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 48px 20px; text-align: center; color: var(--muted); }
@@ -174,7 +188,7 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .item-hero { position: relative; height: 340px; }
 .item-hero.is-done .hero-photo { opacity: 0.55; }
 .hero-back { position: absolute; top: 20px; right: 20px; }
-.item-hero > .pill { position: absolute; bottom: 36px; right: 20px; font-size: 13px; padding: 6px 14px; }
+.item-hero > .pill { position: absolute; bottom: 36px; right: 20px; font-size: 14px; padding: 6px 14px; }
 .item-sheet { position: relative; margin-top: -20px; background: var(--bg); border-radius: 24px 24px 0 0; padding: 24px 20px 24px; display: flex; flex-direction: column; gap: 16px; }
 .item-title { font-size: 24px; font-weight: 700; line-height: 1.25; }
 .person-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface); border-radius: 16px; }
@@ -333,8 +347,7 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
   .top-link:hover { color: var(--ink); background: var(--bg); }
   .top-link.is-active { color: var(--accent-soft-ink); background: var(--accent-soft); }
   .badge-inline { position: static; }
-  .top-publish { width: auto; min-height: 44px; padding: 0 22px; background: var(--pop-strong); color: var(--on-pop); }
-  .top-publish:hover { color: var(--on-pop); }
+  .top-publish { width: auto; min-height: 44px; padding: 0 22px; }
 
   .bottom-nav { display: none; }
   main.with-nav { padding-bottom: 48px; }
