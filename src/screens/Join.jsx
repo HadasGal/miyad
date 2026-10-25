@@ -82,7 +82,7 @@ function CheckStep() {
     <div className="stack-16">
       <StepHeader back="#/join" n={1} />
       <div className="join-hero"><Icon name="chat" size={32} /></div>
-      <h1 className="h1">בדקי את המייל</h1>
+      <h1 className="h1">הלינק בדרך למייל</h1>
       <p className="muted">
         שלחנו לינק ל-<bdi className="ltr-inline">{state.session.email}</bdi>. הלינק פותח את מיד ישר, גם מהטלפון.
       </p>
@@ -108,7 +108,7 @@ function DetailsStep() {
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const errors = {
     name: !form.name.trim() && 'איך קוראים לך?',
-    street: !form.street.trim() && 'באיזה רחוב את גרה?',
+    street: !form.street.trim() && 'מה הרחוב?',
     phone: !isValidPhone(form.phone) && 'מספר נייד, למשל 050-1234567',
   };
   const ok = !errors.name && !errors.street && !errors.phone;
@@ -127,7 +127,7 @@ function DetailsStep() {
     <form className="stack-16" onSubmit={submit} noValidate>
       <StepHeader back="#/join/check" n={2} />
       <h1 className="h1">כמה פרטים</h1>
-      <p className="muted">ככה השכנים יידעו מי את, ומנהלת הקהילה תוכל לאשר.</p>
+      <p className="muted">ככה השכנים יכירו, וההצטרפות תאושר מהר יותר.</p>
 
       <label className="field">שם
         <input autoComplete="name" value={form.name} onChange={set('name')} placeholder="שם פרטי ומשפחה"
@@ -146,7 +146,7 @@ function DetailsStep() {
           placeholder="050-1234567" aria-invalid={tried && !!errors.phone} aria-describedby="phone-err phone-note" />
       </label>
       {err('phone')}
-      <p id="phone-note" className="info-row"><Icon name="lock" size={20} /> הטלפון לא מופיע בלוח. רק מי שתתאמי איתה איסוף תראה אותו.</p>
+      <p id="phone-note" className="info-row"><Icon name="lock" size={20} /> הטלפון לא מופיע בלוח. הוא נחשף רק בתיאום איסוף, ורק לצד השני.</p>
 
       <button className="btn btn-primary" type="submit">שליחה לאישור</button>
     </form>
@@ -162,9 +162,9 @@ function PendingStep() {
   return (
     <div className="stack-16">
       <div className="join-hero"><Icon name="check" size={32} /></div>
-      <h1 className="h1">ממתינה לאישור, {state.session.name.split(' ')[0]}</h1>
+      <h1 className="h1">{state.session.name.split(' ')[0]}, ההצטרפות ממתינה לאישור</h1>
       <p className="muted">
-        מנהלת הקהילה של {COMMUNITY.name} מאשרת כל הצטרפות, כדי שהלוח יישאר של שכנים. נשלח לך מייל ל-<bdi className="ltr-inline">{state.session.email}</bdi> כשזה יקרה.
+        כל הצטרפות ל{COMMUNITY.name} מאושרת ידנית, כדי שהלוח יישאר של שכנים. נשלח לך מייל ל-<bdi className="ltr-inline">{state.session.email}</bdi> כשזה יקרה.
       </p>
       <button className="btn btn-primary" onClick={toDemo}>בינתיים, להציץ בדמו</button>
     </div>

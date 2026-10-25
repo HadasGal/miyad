@@ -11,7 +11,7 @@ const TABS = [
 
 const EMPTY = {
   given: { text: 'עוד לא מסרת כלום.', cta: 'לפרסם משהו', href: '#/publish' },
-  reserved: { text: 'עוד אין דברים ששמורים לך. כשמוסרת תשמור לך משהו, זה יופיע כאן.', cta: 'לעבור על הלוח', href: '#/' },
+  reserved: { text: 'עוד אין דברים ששמורים לך. כשישמרו לך משהו, זה יופיע כאן.', cta: 'לעבור על הלוח', href: '#/' },
   requested: { text: 'אין בקשות פתוחות.', cta: 'לעבור על הלוח', href: '#/' },
 };
 
@@ -62,7 +62,7 @@ export default function Mine({ initialTab }) {
                 <div className="stack-2 grow">
                   <strong className="fw-500">{it.title}</strong>
                   <span className="muted small">
-                    {tab === 'reserved' ? `${userById(it.ownerId).short} שמרה לך. אפשר לתאם איסוף.`
+                    {tab === 'reserved' ? `שמור לך אצל ${userById(it.ownerId).short}. אפשר לתאם איסוף.`
                       : tab === 'given' && it.pickup === 'coordinate' && !isDone(it.status) ? `${it.queue.length} בתור`
                       : timeAgo(it.createdAt)}
                   </span>

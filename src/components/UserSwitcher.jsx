@@ -13,7 +13,7 @@ export default function UserSwitcher() {
   return (
     <div className="demo-bar">
       <label className="demo-switch">
-        <span>מצב דמו · את:</span>
+        <span>מצב דמו · פרופיל:</span>
         <select value={state.currentUserId} onChange={(e) => dispatch({ type: 'switchUser', userId: e.target.value })}>
           {USERS.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
         </select>

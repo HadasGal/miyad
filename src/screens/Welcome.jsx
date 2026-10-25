@@ -35,7 +35,7 @@ export default function Welcome() {
         <div className="welcome-cta">
           <button className="btn btn-primary" onClick={demo}>צפייה בדמו</button>
           <a className="btn btn-ghost" href="#/join">הצטרפות ל{COMMUNITY.name}</a>
-          <p className="muted small">הדמו בלי הרשמה, עם קהילה מדומה. אפשר להחליף משתמשת ולראות את שני הצדדים.</p>
+          <p className="muted small">הדמו בלי הרשמה, עם קהילה מדומה. אפשר להחליף פרופיל ולראות את שני הצדדים.</p>
         </div>
       </div>
 

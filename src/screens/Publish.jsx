@@ -100,8 +100,16 @@ export default function Publish() {
   const canPublish = form.title.trim().length > 1 && pickupOk;
   const canPublishAll = drafts.length > 0 && drafts.every((d) => d.title.trim().length > 1) && pickupOk;
 
+  // הזיהוי מהתמונה מדומה (AI_SUGGESTIONS). אומרים את זה במפורש, כדי שהצעה שלא קשורה לתמונה לא תיראה כמו באג
+  const aiDemoNote = (
+    <div className="demo-note">
+      <strong>בדמו, הזיהוי מהתמונה מדומה.</strong>
+      <span>כל תמונה תקבל אחת מכמה הצעות קבועות, לא מה שבאמת מופיע בה. בגרסה המלאה תמונה תישלח ל-AI אמיתי דרך השרת.</span>
+    </div>
+  );
+
   // הכפתור הדביק מסתיר לפעמים את שדה המיקום, אז אומרים למה הוא כבוי
-  const missingLocation = <p className="muted small center cta-hint">כדי לפרסם, כתבי איפה זה מחכה בחוץ</p>;
+  const missingLocation = <p className="muted small center cta-hint">כדי לפרסם, צריך לכתוב איפה זה מחכה בחוץ</p>;
 
   const pickupFields = (
     <>
@@ -111,12 +119,12 @@ export default function Publish() {
           <button type="button" className={`pickup ${form.pickup === 'outside' ? 'is-on' : ''}`}
             aria-pressed={form.pickup === 'outside'} onClick={() => setForm((f) => ({ ...f, pickup: 'outside' }))}>
             <strong>מחכה בחוץ</strong>
-            <span className="muted small">מי שמגיעה ראשונה לוקחת</span>
+            <span className="muted small">כל הקודם זוכה</span>
           </button>
           <button type="button" className={`pickup ${form.pickup === 'coordinate' ? 'is-on' : ''}`}
             aria-pressed={form.pickup === 'coordinate'} onClick={() => setForm((f) => ({ ...f, pickup: 'coordinate' }))}>
             <strong>תיאום איסוף</strong>
-            <span className="muted small">נכנסים לתור ואת בוחרת</span>
+            <span className="muted small">נכנסים לתור, ובוחרים למי לתת</span>
           </button>
         </div>
       </fieldset>
@@ -151,10 +159,11 @@ export default function Publish() {
         <div className="publish-empty">
           <button className="drop" onClick={() => cameraRef.current?.click()}>
             <span className="drop-icon"><Icon name="camera" size={32} /></span>
-            <strong className="drop-title">צלמי את מה שמוסרים</strong>
+            <strong className="drop-title">לצלם את מה שמוסרים</strong>
             <span className="muted">את השאר נמלא בשבילך</span>
           </button>
           <input ref={cameraRef} type="file" accept="image/*" capture="environment" multiple hidden onChange={onFiles} />
+          {aiDemoNote}
           <input ref={galleryRef} type="file" accept="image/*" multiple hidden onChange={onFiles} />
           {quota.left > 1 ? (
             <>
@@ -184,7 +193,7 @@ export default function Publish() {
           {form.photo && (
             <div className="row-12">
               <Photo item={form} className="thumb" />
-              <p className="ai-note grow">מילאנו בשבילך לפי התמונה. אפשר לשנות הכל.</p>
+              <p className="ai-note grow">מילאנו בשבילך הצעה. בדמו היא לדוגמה ולא מזהה את התמונה. אפשר לשנות הכל.</p>
             </div>
           )}
 
@@ -230,7 +239,7 @@ export default function Publish() {
               </span>
             </div>
           )}
-          <p className="ai-note"><Icon name="sparkle" size={22} /> מילאנו כל פריט לפי התמונה שלו. אפשר לשנות הכל.</p>
+          <p className="ai-note"><Icon name="sparkle" size={22} /> מילאנו הצעה לכל פריט. בדמו ההצעות לדוגמה ולא מזהות את התמונות. אפשר לשנות הכל.</p>
 
           <ul className="drafts">
             {drafts.map((d, i) => (
@@ -279,8 +288,8 @@ export default function Publish() {
           <span className="drop-icon"><Icon name="grid" size={28} /></span>
           <h2 id="bulk-h" className="h2">עד {PUBLISH_LIMIT} פריטים בשעה</h2>
           <p className="muted">
-            כל תמונה שתבחרי תהפוך לפריט נפרד. כדי שהלוח והקבוצה לא יוצפו, אפשר לפרסם עד {PUBLISH_LIMIT} פריטים בשעה.
-            כרגע נשארו לך <strong className="dialog-count">{quota.left}</strong>. אם תבחרי יותר, ניקח את הראשונות.
+            כל תמונה שנבחרת הופכת לפריט נפרד. כדי שהלוח והקבוצה לא יוצפו, אפשר לפרסם עד {PUBLISH_LIMIT} פריטים בשעה.
+            כרגע נשארו לך <strong className="dialog-count">{quota.left}</strong>. אם ייבחרו יותר, ניקח את הראשונות.
           </p>
           <label className="check-row">
             <input type="checkbox" checked={dontShow} onChange={(e) => setDontShow(e.target.checked)} />
@@ -302,7 +311,7 @@ function Published({ items }) {
   const where = first.pickup === 'outside' ? `מחכה בחוץ, ${first.location}` : 'תיאום איסוף';
   const text = items.length === 1
     ? `${first.title}${first.pickup === 'outside' && first.location ? `, ${first.location}` : ''}\n${itemLink(first.id)}`
-    : `מוסרת ${items.length} דברים (${where}):\n${items.map((it) => `• ${it.title}\n${itemLink(it.id)}`).join('\n')}`;
+    : `למסירה: ${items.length} דברים (${where}):\n${items.map((it) => `• ${it.title}\n${itemLink(it.id)}`).join('\n')}`;
 
   return (
     <div className="stack-16">
@@ -330,7 +339,7 @@ function Published({ items }) {
         </div>
       </div>
 
-      <p className="info-row"><Icon name="refresh" size={20} /> הלינק תמיד מראה את הסטטוס העדכני. מי שלוחצת אחרי שהכל נלקח תראה את זה מיד.</p>
+      <p className="info-row"><Icon name="refresh" size={20} /> הלינק תמיד מראה את הסטטוס העדכני. מי שלוחצים אחרי שהכל נלקח רואים את זה מיד.</p>
 
       <a className="btn btn-primary" href={waShare(text)} target="_blank" rel="noreferrer">
         <Icon name="chat" size={20} /> שיתוף בקבוצה

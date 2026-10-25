@@ -202,13 +202,13 @@ function reducer(state, action) {
         status: 'reserved',
         chosenId: action.userId,
       }));
-      next = notify(next, action.userId, `${nameOf(me)} שמרה לך את ${item.title}`, action.itemId);
+      next = notify(next, action.userId, `${item.title} שמור לך אצל ${nameOf(me)}`, action.itemId);
       // חריגה מהסדר: מי שהייתה לפני הנבחרת יודעת, בלי שם ובלי סיבה.
       // היא נשארת בתור, ואם הנבחרת לא תאסוף, "לא נאסף" יחזיר אליה.
       const active = item.queue.filter((q) => !item.skipped.includes(q.userId));
       const ahead = active.slice(0, active.findIndex((q) => q.userId === action.userId));
       for (const q of ahead) {
-        next = notify(next, q.userId, `${item.title} נשמר כרגע למישהי אחרת. את נשארת בתור, ואם זה ישתחרר תקבלי עדכון.`, item.id);
+        next = notify(next, q.userId, `${item.title} שמור כרגע, לא לך. המקום שלך בתור נשמר, ואם זה ישתחרר יגיע עדכון.`, item.id);
       }
       return next;
     }
@@ -237,12 +237,12 @@ function reducer(state, action) {
     // "מחכה בחוץ": מי שלקחה מסמנת בעצמה
     case 'take': {
       const next = updateItem(state, item.id, (it) => ({ ...it, status: 'taken', takenBy: me, closedAt: Date.now() }));
-      return notify(next, item.ownerId, `${nameOf(me)} לקחה את ${item.title}`, item.id);
+      return notify(next, item.ownerId, `${item.title} נלקח על ידי ${nameOf(me)}`, item.id);
     }
 
     case 'reportGone': {
       const next = updateItem(state, item.id, (it) => ({ ...it, status: 'gone', reportedBy: me, closedAt: Date.now() }));
-      return notify(next, item.ownerId, `${nameOf(me)} הגיעה ו${item.title} כבר לא שם`, item.id);
+      return notify(next, item.ownerId, `לפי ${nameOf(me)}, ${item.title} כבר לא שם`, item.id);
     }
 
     // רשת ביטחון: המוסרת מחזירה לזמין אם מישהי טעתה

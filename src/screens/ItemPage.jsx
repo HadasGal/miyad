@@ -85,7 +85,7 @@ function OwnerPanel({ item }) {
         <strong className="done-title">בבית חדש</strong>
         <span className="muted">
           {to ? `נמסר ל${to.short}.` : 'סימנת שנמסר.'}
-          {waited && ' מי שחיכתה בתור קיבלה עדכון.'}
+          {waited && ' כל מי שחיכו בתור קיבלו עדכון.'}
         </span>
         <a className="btn btn-ghost" href="#/mine">לפריטים שלי</a>
       </div>
@@ -101,9 +101,9 @@ function OwnerPanel({ item }) {
           <Icon name="check" size={36} />
           <strong className="done-title">
             {!who ? 'סימנת שזה נלקח'
-              : item.status === 'taken' ? `${who.short} לקחה את זה` : `${who.short} הגיעה וזה כבר לא היה שם`}
+              : item.status === 'taken' ? `נלקח על ידי ${who.short}` : `לפי ${who.short}, זה כבר לא היה שם`}
           </strong>
-          <span className="muted">הסטטוס התעדכן לכולם, אף אחת לא תטרח לחינם.</span>
+          <span className="muted">הסטטוס התעדכן לכולם, אז אין הליכות לחינם.</span>
           {who
             ? <button className="btn btn-ghost" onClick={() => act('stillThere')}>זה עדיין שם, להחזיר לזמין</button>
             : <a className="btn btn-ghost" href="#/mine">לפריטים שלי</a>}
@@ -112,7 +112,7 @@ function OwnerPanel({ item }) {
     }
     return (
       <div className="panel">
-        <p className="muted">מחכה בחוץ. מי שלוקחת מסמנת בעצמה, ותקבלי עדכון.</p>
+        <p className="muted">מחכה בחוץ. מי שלוקחים מסמנים בעצמם, ומגיע עדכון.</p>
         <ShareButton item={item} />
         <button className="btn btn-ghost" onClick={() => act('ownerClose')}>נלקח</button>
       </div>
@@ -134,19 +134,19 @@ function OwnerPanel({ item }) {
 
       {item.queue.length === 0 && (
         <>
-          <p className="muted">עוד אף אחת לא ביקשה. שיתוף בקבוצה יעזור.</p>
+          <p className="muted">עוד אין בקשות. שיתוף בקבוצה יעזור.</p>
           <ShareButton item={item} />
         </>
       )}
 
       {firstUser && (
         <div className="first-card">
-          <span className="muted small">{firstUser.short} ביקשה ראשונה</span>
+          <span className="muted small">בראש התור: {firstUser.short}</span>
           <button className="btn btn-primary" onClick={() => act('choose', { userId: first })}>לתת ל{firstUser.short}</button>
           {others.length > 0 && !picking && (
-            <button className="btn-link" onClick={() => setPicking(true)}>לבחור מישהי אחרת מהתור</button>
+            <button className="btn-link" onClick={() => setPicking(true)}>בחירה אחרת מהתור</button>
           )}
-          {picking && <p className="muted small center">בחרי מהתור. מי שלפניה תקבל עדכון שזה נשמר למישהי אחרת.</p>}
+          {picking && <p className="muted small center">אפשר לבחור מהתור. מי שהיו לפני יקבלו עדכון.</p>}
         </div>
       )}
 
@@ -162,22 +162,22 @@ function OwnerPanel({ item }) {
                 <Avatar userId={u.id} />
                 <div className="stack-2 grow">
                   <strong className="fw-500">{u.short}</strong>
-                  <span className="muted small">{skipped ? 'לא אספה' : `ביקשה ${timeAgo(q.at)}`}</span>
+                  <span className="muted small">{skipped ? 'לא נאסף' : `בקשה ${timeAgo(q.at)}`}</span>
                 </div>
                 {picking && !item.chosenId && !skipped && q.userId !== first && (
                   <button className="btn-small" onClick={() => { act('choose', { userId: u.id }); setPicking(false); }}>בחירה</button>
                 )}
-                {item.chosenId && !chosen && !skipped && i > chosenIdx && <span className="muted small">ממתינה</span>}
+                {item.chosenId && !chosen && !skipped && i > chosenIdx && <span className="muted small">בהמתנה</span>}
               </div>
               {chosen && (
                 <div className="stack-8">
                   <a className="btn btn-primary" target="_blank" rel="noreferrer"
                     href={waToPerson(u.phone, `היי ${u.short}, לגבי ${item.title} ממיד`)}>
-                    <Icon name="chat" size={20} /> דברי עם {u.short} בווצאפ
+                    <Icon name="chat" size={20} /> לדבר עם {u.short} בווצאפ
                   </a>
                   <div className="btn-row">
                     <button className="btn btn-soft" onClick={() => act('deliver')}>נמסר</button>
-                    <button className="btn btn-ghost" onClick={() => act('noShow')}>לא נאסף, לבאה בתור</button>
+                    <button className="btn btn-ghost" onClick={() => act('noShow')}>לא נאסף, להמשיך בתור</button>
                   </div>
                 </div>
               )}
@@ -188,7 +188,7 @@ function OwnerPanel({ item }) {
 
       {!item.chosenId && (
         <div className="stack-8">
-          <p className="muted small">{item.queue.length > 0 ? 'מסרת למישהי מחוץ לתור, למשל מהקבוצה?' : 'מסרת למישהי מהקבוצה?'}</p>
+          <p className="muted small">{item.queue.length > 0 ? 'נמסר מחוץ לתור, למשל דרך הקבוצה?' : 'נמסר דרך הקבוצה?'}</p>
           <button className="btn btn-ghost" onClick={() => act('ownerClose')}>נמסר</button>
         </div>
       )}
@@ -207,7 +207,7 @@ function SeekerPanel({ item, owner }) {
   if (item.pickup === 'outside') {
     return (
       <div className="action-bar">
-        <p className="muted center">אין תור. מי שמגיעה ראשונה לוקחת.</p>
+        <p className="muted center">אין תור. כל הקודם זוכה.</p>
         <button className="btn btn-primary" onClick={() => act('take')}>לקחתי</button>
         <button className="btn btn-ghost" onClick={() => act('reportGone')}>הגעתי וזה כבר לא שם</button>
       </div>
@@ -217,7 +217,7 @@ function SeekerPanel({ item, owner }) {
   if (item.chosenId === me.id) {
     return (
       <div className="action-bar">
-        <p className="center"><strong>{owner.short} שמרה לך את זה.</strong></p>
+        <p className="center"><strong>זה שמור לך אצל {owner.short}.</strong></p>
         <a className="btn btn-primary" target="_blank" rel="noreferrer"
           href={waToPerson(owner.phone, `היי ${owner.short}, לגבי ${item.title}. מתי נוח לאסוף?`)}>
           <Icon name="chat" size={20} /> תיאום איסוף בווצאפ
@@ -239,10 +239,10 @@ function SeekerPanel({ item, owner }) {
           <span className="pos-num">{myPos + 1}</span>
           <div className="stack-2">
             <strong className="fw-500">
-              {myPos > 0 ? `את במקום ${myPos + 1} בתור` : held ? 'את הבאה בתור' : 'את הראשונה בתור'}
+              {myPos > 0 ? `מקום ${myPos + 1} בתור` : held ? 'התור הבא הוא שלך' : 'המקום הראשון בתור שלך'}
             </strong>
             <span className="muted small">
-              {held ? 'כרגע שמור למישהי. אם זה ישתחרר, תקבלי עדכון.' : `${owner.short} נותנת לפי הסדר. אם משהו ישתנה, תקבלי עדכון.`}
+              {held ? 'כרגע שמור. אם זה ישתחרר, יגיע עדכון.' : 'הנתינה לפי סדר התור. אם משהו ישתנה, יגיע עדכון.'}
             </span>
           </div>
         </div>
@@ -255,7 +255,7 @@ function SeekerPanel({ item, owner }) {
   if (item.skipped.includes(me.id)) {
     return (
       <div className="action-bar">
-        <p className="muted center">האיסוף לא הסתדר, אז התור עבר לבאה. אפשר לשמור התראה ונעדכן כשיופיע משהו דומה.</p>
+        <p className="muted center">האיסוף לא הסתדר, אז התור עבר הלאה. אפשר לשמור התראה ונעדכן כשיופיע משהו דומה.</p>
       </div>
     );
   }
@@ -264,8 +264,8 @@ function SeekerPanel({ item, owner }) {
     <div className="action-bar">
       <p className="muted center">
         {item.status === 'reserved'
-          ? 'כרגע שמור למישהי. אפשר להיכנס לתור למקרה שלא תאסוף.'
-          : active.length > 0 ? `${active.length} כבר ביקשו. אפשר להצטרף לתור.` : 'עוד אף אחת לא ביקשה.'}
+          ? 'כרגע שמור. אפשר להיכנס לתור, למקרה שהאיסוף לא יסתדר.'
+          : active.length > 0 ? `${active.length} כבר ביקשו. אפשר להצטרף לתור.` : 'עוד אין בקשות.'}
       </p>
       <button className="btn btn-primary" onClick={() => act('request')}>אני רוצה</button>
     </div>

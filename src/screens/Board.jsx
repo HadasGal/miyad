@@ -38,7 +38,7 @@ export default function Board() {
 
       <label className="search">
         <Icon name="search" size={20} />
-        <input type="search" value={query} placeholder="מה את מחפשת? ספה, אופניים..."
+        <input type="search" value={query} placeholder="מה מחפשים? ספה, אופניים..."
           aria-label="חיפוש" onChange={(e) => { setQuery(e.target.value); setSaved(false); }} />
       </label>
 

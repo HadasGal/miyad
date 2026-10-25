@@ -34,8 +34,8 @@ export default function Alerts() {
       <h1 className="h1">התראות</h1>
 
       <section className="stack-8" aria-labelledby="searches-h">
-        <h2 id="searches-h" className="h2">מה את מחפשת</h2>
-        <p className="muted small">נראה לך מה כבר יש בלוח, ונעדכן כשמישהי תפרסם עוד. בגרסה המלאה גם במייל.</p>
+        <h2 id="searches-h" className="h2">מה מחפשים</h2>
+        <p className="muted small">נראה לך מה כבר יש בלוח, ונעדכן כשיתפרסם עוד. בגרסה המלאה גם במייל.</p>
         <form className="search" onSubmit={add}>
           <Icon name="bell" size={20} />
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ספה, אופניים, מיטת תינוק" aria-label="חיפוש חדש" />
@@ -68,7 +68,7 @@ export default function Alerts() {
                       ))}
                     </ul>
                   ) : (
-                    <p className="muted small">כשמישהי תפרסם, תקבלי התראה.</p>
+                    <p className="muted small">כשזה יתפרסם, תגיע התראה.</p>
                   )}
                 </li>
               );
@@ -80,7 +80,7 @@ export default function Alerts() {
       <section className="stack-8" aria-labelledby="feed-h">
         <h2 id="feed-h" className="h2">עדכונים</h2>
         {mine.length === 0 ? (
-          <p className="muted">אין עדכונים עדיין. כשמישהי תבקש משהו שלך או תפרסם מה שחיפשת, זה יופיע כאן.</p>
+          <p className="muted">אין עדכונים עדיין. כשיבקשו משהו שלך, או כשיתפרסם מה שחיפשת, זה יופיע כאן.</p>
         ) : (
           <ul className="list">
             {mine.map((n) => (
