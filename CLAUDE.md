@@ -58,7 +58,7 @@
 **השבוע:**
 - [ ] הדס עוברת על הקוד ועל DECISIONS.md ומשנה מה שלא משכנע
 - [ ] ליטוש עיצובי מול הקנבס
-- [ ] העלאה ללינק חי (Vercel או Firebase Hosting)
+- [x] העלאה ללינק חי: https://miyad.vercel.app (Vercel, מתעדכן אוטומטית מכל push ל-main ב-github.com/HadasGal/miyad)
 - [x] מסכי כניסה (נחיתה עם "צפייה בדמו", בדקי מייל, פרטים, ממתין לאישור), כזרימה מדומה. ב-Firebase מחברים ל-Auth
 - [ ] בונוס אם יש זמן: Firebase אמיתי (Auth עם לינק למייל, Firestore, Storage, Cloud Function ל-AI והתראות במייל)
 
