@@ -1,3 +1,6 @@
 node_modules
 dist
 .DS_Store
+
+# הגדרות מקומיות של Claude Code (תצוגה מקדימה). לא חלק מהמוצר
+.claude/
