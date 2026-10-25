@@ -12,7 +12,9 @@ export default function Join({ step = 'email' }) {
   const s = state.session;
 
   // לא מדלגים שלבים: מי שהגיעה לשלב בלי מה שקדם לו חוזרת לשלב הנכון
-  const allowed = s.mode === 'pending' ? 'pending' : s.verified ? 'details' : s.email ? 'check' : 'email';
+  // לפי התקדמות ההרשמה ולא לפי mode: "להציץ בדמו" משנה את mode ל-demo,
+  // ואם השלב נגזר ממנו, ה-effect כאן היה מחזיר לשלב הפרטים במקום להיכנס לדמו
+  const allowed = s.name ? 'pending' : s.verified ? 'details' : s.email ? 'check' : 'email';
   const current = STEPS.includes(step) && STEPS.indexOf(step) <= STEPS.indexOf(allowed) ? step : allowed;
   useEffect(() => {
     if (current !== step) window.location.hash = current === 'email' ? '/join' : `/join/${current}`;
