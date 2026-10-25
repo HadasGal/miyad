@@ -177,12 +177,13 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .top-nav { display: none; }
 
 /* ניווט תחתון */
-.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; height: calc(80px + env(safe-area-inset-bottom, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: space-around; align-items: center; }
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; height: calc(80px + env(safe-area-inset-bottom, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: center; }
 .nav-tab { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); text-decoration: none; min-width: 56px; min-height: 48px; justify-content: center; }
 .nav-tab.is-active { color: var(--accent); font-weight: 500; }
-.nav-icon { position: relative; display: inline-flex; }
+.nav-icon { position: relative; display: inline-flex; align-items: center; justify-content: center; height: 32px; }
 .badge { position: absolute; top: -4px; left: -8px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--pop-strong); color: var(--on-pop); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-.nav-plus { width: 58px; height: 58px; border-radius: 29px; background: var(--pop); color: var(--on-pop); display: flex; align-items: center; justify-content: center; margin-top: -26px; box-shadow: 0 0 0 6px var(--bg); }
+.nav-plus { width: 52px; border-radius: 16px; background: var(--pop-strong); color: var(--on-pop); }
+.nav-tab.nav-publish { color: var(--pop-strong); font-weight: 500; }
 
 /* עמוד פריט */
 .item-hero { position: relative; height: 340px; }
