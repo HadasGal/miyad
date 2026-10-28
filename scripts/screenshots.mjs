@@ -40,6 +40,8 @@ async function fresh(viewport, user, hash = '#/') {
   await page.select('.demo-switch select', user);
   await sleep(200);
   await page.evaluate((h) => { location.hash = h; }, hash);
+  // פס הדמו (מחליף פרופיל, איפוס) הוא כלי לדמו, לא חלק מהמוצר. מסתירים אותו רק בצילום
+  await page.addStyleTag({ content: '.demo-bar { display: none !important; }' });
   await sleep(400);
   return page;
 }
