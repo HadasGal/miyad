@@ -1,24 +1,22 @@
 import { useState } from 'react';
 import { myLists, useStore, userById } from '../store.jsx';
 import { Photo, StatusPill } from '../components/Bits.jsx';
-import { isDone, statusLabel, timeAgo } from '../utils.js';
+import { isDone, statusKey } from '../utils.js';
+import { useT } from '../i18n.jsx';
 
-const TABS = [
-  { id: 'given', label: 'מסרתי' },
-  { id: 'reserved', label: 'שמור לי' },
-  { id: 'requested', label: 'ביקשתי' },
-];
+const TABS = ['given', 'reserved', 'requested'];
 
 const EMPTY = {
-  given: { text: 'עוד לא מסרת כלום.', cta: 'לפרסם משהו', href: '#/publish' },
-  reserved: { text: 'עוד אין דברים ששמורים לך. כשמשהו יישמר לך, הוא יופיע כאן.', cta: 'לעבור על הלוח', href: '#/' },
-  requested: { text: 'אין בקשות פתוחות.', cta: 'לעבור על הלוח', href: '#/' },
+  given: { text: 'mine.emptyGiven', cta: 'board.publishSomething', href: '#/publish' },
+  reserved: { text: 'mine.emptyReserved', cta: 'mine.browse', href: '#/' },
+  requested: { text: 'mine.emptyRequested', cta: 'mine.browse', href: '#/' },
 };
 
 // #/mine/reserved פותח ישר את "שמור לי"
 export default function Mine({ initialTab }) {
   const { state, dispatch, me } = useStore();
-  const [tab, setTab] = useState(TABS.some((t) => t.id === initialTab) ? initialTab : 'given');
+  const { t, L, ago } = useT();
+  const [tab, setTab] = useState(TABS.includes(initialTab) ? initialTab : 'given');
 
   const lists = myLists(state, me.id);
   const list = lists[tab];
@@ -26,20 +24,20 @@ export default function Mine({ initialTab }) {
 
   return (
     <div className="screen">
-      <h1 className="h1">שלי</h1>
+      <h1 className="h1">{t('mine.title')}</h1>
 
       <div className="tabs" role="tablist">
-        {TABS.map((t) => (
-          <button key={t.id} role="tab" aria-selected={tab === t.id} className={`tab ${tab === t.id ? 'is-on' : ''}`} onClick={() => setTab(t.id)}>
-            {t.label} ({lists[t.id].length})
+        {TABS.map((id) => (
+          <button key={id} role="tab" aria-selected={tab === id} className={`tab ${tab === id ? 'is-on' : ''}`} onClick={() => setTab(id)}>
+            {t(`mine.${id}`)} ({lists[id].length})
           </button>
         ))}
       </div>
 
       {list.length === 0 ? (
         <div className="empty">
-          <p>{empty.text}</p>
-          <a className="btn btn-primary" href={empty.href}>{empty.cta}</a>
+          <p>{t(empty.text)}</p>
+          <a className="btn btn-primary" href={empty.href}>{t(empty.cta)}</a>
         </div>
       ) : (
         <ul className="list">
@@ -50,21 +48,21 @@ export default function Mine({ initialTab }) {
                   <div className="list-row-main" aria-disabled="true">
                     <Photo item={it} className="list-thumb" />
                     <div className="stack-2 grow">
-                      <strong className="fw-500">{it.title}</strong>
-                      <span className="muted small">{statusLabel(it)} {timeAgo(it.closedAt ?? it.createdAt)}</span>
+                      <strong className="fw-500">{L(it.title)}</strong>
+                      <span className="muted small">{t(statusKey(it))} {ago(it.closedAt ?? it.createdAt)}</span>
                     </div>
                   </div>
-                  <button className="btn-small" onClick={() => dispatch({ type: 'reopen', itemId: it.id })}>להחזיר ללוח</button>
+                  <button className="btn-small" onClick={() => dispatch({ type: 'reopen', itemId: it.id })}>{t('mine.reopen')}</button>
                 </div>
               ) : (
               <a href={`#/item/${it.id}`} className={`list-row ${isDone(it.status) ? 'is-done' : ''}`}>
                 <Photo item={it} className="list-thumb" />
                 <div className="stack-2 grow">
-                  <strong className="fw-500">{it.title}</strong>
+                  <strong className="fw-500">{L(it.title)}</strong>
                   <span className="muted small">
-                    {tab === 'reserved' ? `שמור לך אצל ${userById(it.ownerId).short}. אפשר לתאם איסוף.`
-                      : tab === 'given' && it.pickup === 'coordinate' && !isDone(it.status) ? `${it.queue.length} בתור`
-                      : timeAgo(it.createdAt)}
+                    {tab === 'reserved' ? t('mine.reservedAt', { name: L(userById(it.ownerId).short) })
+                      : tab === 'given' && it.pickup === 'coordinate' && !isDone(it.status) ? t('mine.inQueue', { n: it.queue.length })
+                      : ago(it.createdAt)}
                   </span>
                 </div>
                 <StatusPill item={it} />

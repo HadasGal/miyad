@@ -4,6 +4,7 @@ import { AI_SUGGESTIONS, CATEGORIES, COMMUNITY } from '../data/mockData.js';
 import Icon from '../components/Icon.jsx';
 import { Photo } from '../components/Bits.jsx';
 import { itemLink, resizeImage, waShare } from '../utils.js';
+import { useT } from '../i18n.jsx';
 
 let suggestionIdx = 0;
 
@@ -19,6 +20,7 @@ const newId = () => Math.random().toString(36).slice(2, 10);
 
 export default function Publish() {
   const { state, dispatch, me } = useStore();
+  const { t, L } = useT();
   const quota = publishQuota(state, me.id);
   const [stage, setStage] = useState('empty'); // empty | thinking | form | bulk | published
   const [form, setForm] = useState({
@@ -68,7 +70,8 @@ export default function Publish() {
     const results = await Promise.all(take.map(async (file) => {
       let photo = null;
       try { photo = await resizeImage(file); } catch { photo = null; }
-      return { photo, ...(await mockRecognize()) };
+      const s = await mockRecognize();
+      return { photo, title: L(s.title), category: s.category, condition: L(s.condition) };
     }));
     if (!alive.current) return;
     if (results.length === 1) {
@@ -103,35 +106,35 @@ export default function Publish() {
   // הזיהוי מהתמונה מדומה (AI_SUGGESTIONS). אומרים את זה במפורש, כדי שהצעה שלא קשורה לתמונה לא תיראה כמו באג
   const aiDemoNote = (
     <div className="demo-note">
-      <strong>בדמו, הזיהוי מהתמונה מדומה.</strong>
-      <span>כל תמונה תקבל אחת מכמה הצעות קבועות, לא מה שבאמת מופיע בה. בגרסה המלאה תמונה תישלח ל-AI אמיתי דרך השרת.</span>
+      <strong>{t('pub.aiDemo')}</strong>
+      <span>{t('pub.aiDemoSub')}</span>
     </div>
   );
 
   // הכפתור הדביק מסתיר לפעמים את שדה המיקום, אז אומרים למה הוא כבוי
-  const missingLocation = <p className="muted small center cta-hint">כדי לפרסם, צריך לכתוב איפה זה מחכה בחוץ</p>;
+  const missingLocation = <p className="muted small center cta-hint">{t('pub.missingLocation')}</p>;
 
   const pickupFields = (
     <>
       <fieldset className="field">
-        <legend>{stage === 'bulk' ? 'איסוף (לכל הפריטים)' : 'איסוף'}</legend>
+        <legend>{stage === 'bulk' ? t('pub.pickupAll') : t('pub.pickup')}</legend>
         <div className="pickup-grid">
           <button type="button" className={`pickup ${form.pickup === 'outside' ? 'is-on' : ''}`}
             aria-pressed={form.pickup === 'outside'} onClick={() => setForm((f) => ({ ...f, pickup: 'outside' }))}>
-            <strong>מחכה בחוץ</strong>
-            <span className="muted small">כל הקודם זוכה</span>
+            <strong>{t('pickup.outside')}</strong>
+            <span className="muted small">{t('pub.outsideSub')}</span>
           </button>
           <button type="button" className={`pickup ${form.pickup === 'coordinate' ? 'is-on' : ''}`}
             aria-pressed={form.pickup === 'coordinate'} onClick={() => setForm((f) => ({ ...f, pickup: 'coordinate' }))}>
-            <strong>תיאום איסוף</strong>
-            <span className="muted small">תור לפי הסדר, ובחירה למי לתת</span>
+            <strong>{t('pickup.coordinate')}</strong>
+            <span className="muted small">{t('pub.coordinateSub')}</span>
           </button>
         </div>
       </fieldset>
 
       {form.pickup === 'outside' && (
-        <label className="field">איפה בדיוק?
-          <input value={form.location} onChange={set('location')} placeholder="על החומה ליד השער" />
+        <label className="field">{t('pub.where')}
+          <input value={form.location} onChange={set('location')} placeholder={t('pub.wherePh')} />
         </label>
       )}
     </>
@@ -140,18 +143,18 @@ export default function Publish() {
   return (
     <div className="screen publish">
       <header className="row-between">
-        <h1 className="h1">{stage === 'published' ? 'על הלוח' : 'מה למסירה היום?'}</h1>
-        <a href="#/" className="icon-btn" aria-label="סגירה"><Icon name="close" size={18} /></a>
+        <h1 className="h1">{stage === 'published' ? t('pub.titleDone') : t('pub.titleEmpty')}</h1>
+        <a href="#/" className="icon-btn" aria-label={t('pub.close')}><Icon name="close" size={18} /></a>
       </header>
 
       {stage === 'empty' && quota.left === 0 && (
         <div className="done-card">
           <Icon name="refresh" size={32} />
-          <strong className="done-title">פרסמת {PUBLISH_LIMIT} פריטים בשעה האחרונה</strong>
+          <strong className="done-title">{t('pub.limitReached', { n: PUBLISH_LIMIT })}</strong>
           <span className="muted">
-            ככה הלוח והקבוצה לא מוצפים. אפשר לפרסם שוב בעוד {Math.max(1, Math.ceil((quota.resetsAt - Date.now()) / 60000))} דקות.
+            {t('pub.limitText', { m: Math.max(1, Math.ceil((quota.resetsAt - Date.now()) / 60000)) })}
           </span>
-          <a className="btn btn-ghost" href="#/mine">לפריטים שלי</a>
+          <a className="btn btn-ghost" href="#/mine">{t('item.toMine')}</a>
         </div>
       )}
 
@@ -159,8 +162,8 @@ export default function Publish() {
         <div className="publish-empty">
           <button className="drop" onClick={() => cameraRef.current?.click()}>
             <span className="drop-icon"><Icon name="camera" size={32} /></span>
-            <strong className="drop-title">לצלם את מה שיוצא מהבית</strong>
-            <span className="muted">את השאר נמלא בשבילך</span>
+            <strong className="drop-title">{t('pub.shoot')}</strong>
+            <span className="muted">{t('pub.shootSub')}</span>
           </button>
           <input ref={cameraRef} type="file" accept="image/*" capture="environment" multiple hidden onChange={onFiles} />
           {aiDemoNote}
@@ -168,21 +171,21 @@ export default function Publish() {
           {quota.left > 1 ? (
             <>
               <button className="btn btn-ghost" onClick={openBulk}>
-                <Icon name="grid" size={20} /> כמה פריטים בבת אחת
+                <Icon name="grid" size={20} /> {t('pub.multi')}
               </button>
-              <p className="muted small center">כל תמונה הופכת לפריט נפרד. אפשר עד {quota.left} בשעה הקרובה.</p>
+              <p className="muted small center">{t('pub.multiHint', { n: quota.left })}</p>
             </>
           ) : (
-            <p className="muted small center">אפשר עוד פריט אחד בשעה הקרובה.</p>
+            <p className="muted small center">{t('pub.oneLeft')}</p>
           )}
-          <button className="btn-link" onClick={() => setStage('form')}>להמשיך בלי תמונה</button>
+          <button className="btn-link" onClick={() => setStage('form')}>{t('pub.noPhoto')}</button>
         </div>
       )}
 
       {stage === 'thinking' && (
         <div className="stack-16" aria-live="polite">
           <div className="thinking-photo" />
-          <div className="ai-note"><Icon name="sparkle" size={22} /> מזהה מה בתמונות...</div>
+          <div className="ai-note"><Icon name="sparkle" size={22} /> {t('pub.thinking')}</div>
           <div className="skeleton" style={{ height: 52 }} />
           <div className="skeleton" style={{ height: 88 }} />
         </div>
@@ -193,36 +196,36 @@ export default function Publish() {
           {form.photo && (
             <div className="row-12">
               <Photo item={form} className="thumb" />
-              <p className="ai-note grow">מילאנו בשבילך הצעה. בדמו היא לדוגמה ולא מזהה את התמונה. אפשר לשנות הכל.</p>
+              <p className="ai-note grow">{t('pub.filledOne')}</p>
             </div>
           )}
 
-          <label className="field">כותרת
-            <input value={form.title} onChange={set('title')} placeholder="מה זה?" />
+          <label className="field">{t('pub.fTitle')}
+            <input value={form.title} onChange={set('title')} placeholder={t('pub.fTitlePh')} />
           </label>
 
-          <div className="field">קטגוריה
+          <div className="field">{t('pub.fCategory')}
             <div className="chips wrap">
               {CATEGORIES.map((c) => (
                 <button key={c.id} type="button" className={`chip ${form.category === c.id ? 'is-on' : ''}`}
                   aria-pressed={form.category === c.id}
-                  onClick={() => setForm((f) => ({ ...f, category: c.id }))}>{c.label}</button>
+                  onClick={() => setForm((f) => ({ ...f, category: c.id }))}>{L(c.label)}</button>
               ))}
             </div>
           </div>
 
-          <label className="field">מצב
-            <input value={form.condition} onChange={set('condition')} placeholder="כמו חדש, טוב, צריך תיקון קטן" />
+          <label className="field">{t('pub.fCondition')}
+            <input value={form.condition} onChange={set('condition')} placeholder={t('pub.fConditionPh')} />
           </label>
 
-          <label className="field">עוד משהו שכדאי לדעת?
-            <textarea rows="2" value={form.description} onChange={set('description')} placeholder="לא חובה" />
+          <label className="field">{t('pub.fMore')}
+            <textarea rows="2" value={form.description} onChange={set('description')} placeholder={t('pub.fMorePh')} />
           </label>
 
           {pickupFields}
 
           <div className="sticky-cta">
-            <button className="btn btn-primary" disabled={!canPublish} onClick={publish}>פרסום ללוח</button>
+            <button className="btn btn-primary" disabled={!canPublish} onClick={publish}>{t('pub.publish')}</button>
             {!pickupOk && missingLocation}
           </div>
         </div>
@@ -232,36 +235,33 @@ export default function Publish() {
         <div className="stack-16">
           {trimmed > 0 && (
             <div className="notice-warn" role="alert">
-              <strong className="notice-title">{trimmed === 1 ? 'תמונה אחת לא נכנסה' : `${trimmed} תמונות לא נכנסו`}</strong>
-              <span>
-                אפשר לפרסם עד {PUBLISH_LIMIT} פריטים בשעה, אז לקחנו רק את {drafts.length} הראשונות.
-                את השאר אפשר לפרסם אחר כך.
-              </span>
+              <strong className="notice-title">{t('pub.trimmed', { n: trimmed })}</strong>
+              <span>{t('pub.trimmedText', { limit: PUBLISH_LIMIT, n: drafts.length })}</span>
             </div>
           )}
-          <p className="ai-note"><Icon name="sparkle" size={22} /> מילאנו הצעה לכל פריט. בדמו ההצעות לדוגמה ולא מזהות את התמונות. אפשר לשנות הכל.</p>
+          <p className="ai-note"><Icon name="sparkle" size={22} /> {t('pub.filledMany')}</p>
 
           <ul className="drafts">
             {drafts.map((d, i) => (
               <li key={d.key} className="draft">
                 <Photo item={d} className="draft-thumb" />
                 <div className="stack-8 grow">
-                  <label className="field">כותרת
-                    <input value={d.title} onChange={(e) => setDraft(d.key, 'title', e.target.value)} placeholder="מה זה?" />
+                  <label className="field">{t('pub.fTitle')}
+                    <input value={d.title} onChange={(e) => setDraft(d.key, 'title', e.target.value)} placeholder={t('pub.fTitlePh')} />
                   </label>
                   <div className="draft-row">
-                    <label className="field grow">קטגוריה
+                    <label className="field grow">{t('pub.fCategory')}
                       <select value={d.category} onChange={(e) => setDraft(d.key, 'category', e.target.value)}>
-                        {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+                        {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{L(c.label)}</option>)}
                       </select>
                     </label>
-                    <label className="field grow">מצב
+                    <label className="field grow">{t('pub.fCondition')}
                       <input value={d.condition} onChange={(e) => setDraft(d.key, 'condition', e.target.value)} />
                     </label>
                   </div>
                 </div>
                 {drafts.length > 1 && (
-                  <button className="draft-x" aria-label={`הסרת פריט ${i + 1}`}
+                  <button className="draft-x" aria-label={t('pub.removeDraft', { n: i + 1 })}
                     onClick={() => setDrafts((ds) => ds.filter((x) => x.key !== d.key))}>
                     <Icon name="close" size={16} />
                   </button>
@@ -274,7 +274,7 @@ export default function Publish() {
 
           <div className="sticky-cta">
             <button className="btn btn-primary" disabled={!canPublishAll} onClick={publishAll}>
-              פרסום {drafts.length} פריטים ללוח
+              {t('pub.publishMany', { n: drafts.length })}
             </button>
             {!pickupOk && missingLocation}
           </div>
@@ -286,18 +286,17 @@ export default function Publish() {
       <dialog ref={dialogRef} className="sheet-dialog" aria-labelledby="bulk-h">
         <div className="stack-16">
           <span className="drop-icon"><Icon name="grid" size={28} /></span>
-          <h2 id="bulk-h" className="h2">עד {PUBLISH_LIMIT} פריטים בשעה</h2>
+          <h2 id="bulk-h" className="h2">{t('pub.dialogTitle', { n: PUBLISH_LIMIT })}</h2>
           <p className="muted">
-            כל תמונה שנבחרת הופכת לפריט נפרד. כדי שהלוח והקבוצה לא יוצפו, אפשר לפרסם עד {PUBLISH_LIMIT} פריטים בשעה.
-            כרגע נשארו לך <strong className="dialog-count">{quota.left}</strong>. אם ייבחרו יותר, ניקח את הראשונות.
+            {t('pub.dialogText', { limit: PUBLISH_LIMIT })}<strong className="dialog-count">{quota.left}</strong>{t('pub.dialogAfter')}
           </p>
           <label className="check-row">
             <input type="checkbox" checked={dontShow} onChange={(e) => setDontShow(e.target.checked)} />
-            לא להציג את זה שוב
+            {t('pub.dontShow')}
           </label>
           <div className="stack-8">
-            <button className="btn btn-primary" onClick={confirmBulk}>לבחור תמונות</button>
-            <button className="btn btn-ghost" onClick={() => dialogRef.current?.close()}>ביטול</button>
+            <button className="btn btn-primary" onClick={confirmBulk}>{t('pub.pickPhotos')}</button>
+            <button className="btn btn-ghost" onClick={() => dialogRef.current?.close()}>{t('pub.cancel')}</button>
           </div>
         </div>
       </dialog>
@@ -307,18 +306,19 @@ export default function Publish() {
 
 // כרטיס שיתוף. בהעלאה מרובה: הודעה אחת לקבוצה עם כל הפריטים, לא חמש הודעות.
 function Published({ items }) {
+  const { t, L } = useT();
   const [first] = items;
-  const where = first.pickup === 'outside' ? `מחכה בחוץ, ${first.location}` : 'תיאום איסוף';
+  const where = first.pickup === 'outside' ? t('pub.whereOutside', { loc: first.location }) : t('pickup.coordinate');
   const text = items.length === 1
     ? `${first.title}${first.pickup === 'outside' && first.location ? `, ${first.location}` : ''}\n${itemLink(first.id)}`
-    : `למסירה: ${items.length} דברים (${where}):\n${items.map((it) => `• ${it.title}\n${itemLink(it.id)}`).join('\n')}`;
+    : `${t('pub.shareMany', { n: items.length, where })}\n${items.map((it) => `• ${it.title}\n${itemLink(it.id)}`).join('\n')}`;
 
   return (
     <div className="stack-16">
-      <p className="muted">עכשיו שכל השכונה תדע.</p>
+      <p className="muted">{t('pub.letKnow')}</p>
 
       <div className="wa-preview">
-        <span className="muted small">ככה זה ייראה בקבוצה</span>
+        <span className="muted small">{t('pub.waPreview')}</span>
         <div className="wa-bubble">
           <div className="wa-card">
             {items.length === 1 ? (
@@ -333,20 +333,20 @@ function Published({ items }) {
                 ? <strong>{first.title}</strong>
                 : <strong>{items.map((it) => it.title).join(' · ')}</strong>}
               <span className="muted small">{where}</span>
-              <span className="muted xsmall">מיד · {COMMUNITY.name}</span>
+              <span className="muted xsmall">{t('brand')} · {L(COMMUNITY.name)}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <p className="info-row"><Icon name="refresh" size={20} /> הלינק תמיד מראה את הסטטוס העדכני. לחיצה על הלינק אחרי שהכל נלקח מראה את זה מיד.</p>
+      <p className="info-row"><Icon name="refresh" size={20} /> {t('pub.linkLive')}</p>
 
       <a className="btn btn-primary" href={waShare(text)} target="_blank" rel="noreferrer">
-        <Icon name="chat" size={20} /> שיתוף בקבוצה
+        <Icon name="chat" size={20} /> {t('item.share')}
       </a>
       {items.length === 1
-        ? <a className="btn btn-ghost" href={`#/item/${first.id}`}>לעמוד הפריט</a>
-        : <a className="btn btn-ghost" href="#/mine">לפריטים שלי</a>}
+        ? <a className="btn btn-ghost" href={`#/item/${first.id}`}>{t('pub.toItem')}</a>
+        : <a className="btn btn-ghost" href="#/mine">{t('item.toMine')}</a>}
     </div>
   );
 }

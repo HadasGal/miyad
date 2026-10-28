@@ -8,8 +8,9 @@ import { isDone } from './utils.js';
 
 // מעלים גרסה בכל פעם שנתוני הדמו או מבנה המצב משתנים. אחרת דפדפן עם מצב שמור ישן
 // ממשיך לטעון אותו, ולא רואה את החדש (ככה התמונות "לא הופיעו").
-const STORAGE_KEY = 'miyad:v2';
-const OLD_KEYS = ['miyad:v1'];
+// v3: טקסטי דמו בשתי שפות, והתראות נשמרות כמפתח + ערכים במקום טקסט
+const STORAGE_KEY = 'miyad:v3';
+const OLD_KEYS = ['miyad:v1', 'miyad:v2'];
 
 // כניסה: mode הוא null (עוד לא נכנסה), 'demo' (צופה בדמו), או 'pending' (נרשמה ומחכה לאישור).
 // בדמו ההרשמה מדומה. ב-Firebase: לינק למייל (Auth), והאישור של מנהלת הקהילה ב-Firestore.
@@ -37,14 +38,14 @@ function loadState() {
 }
 
 const uid = () => Math.random().toString(36).slice(2, 10);
-const nameOf = (id) => USERS.find((u) => u.id === id)?.short ?? '';
-
-function notify(state, userId, text, itemId) {
+// התראה נשמרת כמפתח במילון + ערכים (כותרת הפריט ומי עשתה את הפעולה), ומתורגמת בהצגה.
+// ככה מי שמחליפה שפה רואה גם את ההתראות הישנות בשפה החדשה.
+function notify(state, userId, key, item, by, itemId = item?.id) {
   if (!userId) return state;
   return {
     ...state,
     notifications: [
-      { id: uid(), userId, text, itemId, at: Date.now(), read: false },
+      { id: uid(), userId, key, vars: { title: item?.title, by }, itemId, at: Date.now(), read: false },
       ...state.notifications,
     ],
   };
@@ -67,16 +68,24 @@ function stem(word) {
 // אותיות סופיות: "עציץ" ו"עציצי" צריכים להגיע לאותו שורש
 const FINALS = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
 const unfinal = (w) => w.replace(/[ךםןףץ]/g, (c) => FINALS[c]);
-const stems = (text) => text.split(/[\s,.\-–־׳"'״]+/).filter(Boolean).map((w) => unfinal(stem(w)));
+// באנגלית: רבים פשוטים (sofas, boxes) לאותו שורש
+const enStem = (w) => (w.length > 4 && w.endsWith('es') ? w.slice(0, -2) : w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w);
+const stems = (text) => text.toLowerCase().split(/[\s,.\-–־׳"'״’]+/).filter(Boolean)
+  .map((w) => (/[א-ת]/.test(w) ? unfinal(stem(w)) : enStem(w)));
+
+// טקסט דמו הוא { he, en }, וטקסט של משתמשת הוא מחרוזת. בחיפוש בודקים את כל הגרסאות.
+export const variants = (v) => (v && typeof v === 'object' ? Object.values(v) : [v ?? '']);
 
 export function matchesQuery(item, query) {
-  const q = query.trim();
-  if (!q) return false;
-  const cat = CATEGORIES.find((c) => c.id === item.category)?.label ?? '';
-  const text = `${item.title} ${cat}`;
-  if (text.includes(q)) return true;
+  const cat = CATEGORIES.find((c) => c.id === item.category)?.label;
+  const text = [...variants(item.title), ...variants(cat)].join(' ').toLowerCase();
   const have = new Set(stems(text));
-  return stems(q).every((s) => have.has(s));
+  return variants(query).some((v) => {
+    const q = v.trim().toLowerCase();
+    if (!q) return false;
+    if (text.includes(q)) return true;
+    return stems(q).every((s) => have.has(s));
+  });
 }
 
 // מה שכבר עכשיו בלוח ומתאים לחיפוש: זמין או שמור, ולא של מי שמחפשת
@@ -149,7 +158,7 @@ function publishOne(state, me, item) {
   // התראות: כל מי ששמרה חיפוש שמתאים לפריט, חוץ מהמוסרת עצמה
   for (const a of state.alerts) {
     if (a.userId !== me && matchesQuery(newItem, a.query)) {
-      next = notify(next, a.userId, `מה שחיפשת הגיע: ${newItem.title}`, newItem.id);
+      next = notify(next, a.userId, 'n.match', newItem);
     }
   }
   return next;
@@ -187,7 +196,7 @@ function reducer(state, action) {
         ...it,
         queue: [...it.queue, { userId: me, at: Date.now() }],
       }));
-      return notify(next, item.ownerId, `${nameOf(me)} רוצה את ${item.title}`, item.id);
+      return notify(next, item.ownerId, 'n.request', item, me);
     }
 
     case 'cancelRequest':
@@ -202,13 +211,13 @@ function reducer(state, action) {
         status: 'reserved',
         chosenId: action.userId,
       }));
-      next = notify(next, action.userId, `${item.title} שמור לך אצל ${nameOf(me)}`, action.itemId);
+      next = notify(next, action.userId, 'n.reserved', item, me);
       // חריגה מהסדר: מי שהייתה לפני הנבחרת יודעת, בלי שם ובלי סיבה.
       // היא נשארת בתור, ואם הנבחרת לא תאסוף, "לא נאסף" יחזיר אליה.
       const active = item.queue.filter((q) => !item.skipped.includes(q.userId));
       const ahead = active.slice(0, active.findIndex((q) => q.userId === action.userId));
       for (const q of ahead) {
-        next = notify(next, q.userId, `${item.title} שמור כרגע, לא לך. המקום שלך בתור נשמר, ואם זה ישתחרר יגיע עדכון.`, item.id);
+        next = notify(next, q.userId, 'n.passed', item);
       }
       return next;
     }
@@ -222,14 +231,14 @@ function reducer(state, action) {
         chosenId: nextId,
         status: nextId ? 'reserved' : 'available',
       }));
-      if (nextId) next = notify(next, nextId, `הגיע תורך: ${item.title} שמור לך`, item.id);
+      if (nextId) next = notify(next, nextId, 'n.yourTurn', item);
       return next;
     }
 
     case 'deliver': {
       let next = updateItem(state, item.id, (it) => ({ ...it, status: 'given', closedAt: Date.now() }));
       for (const q of item.queue) {
-        if (q.userId !== item.chosenId) next = notify(next, q.userId, `${item.title} כבר נמסר`, item.id);
+        if (q.userId !== item.chosenId) next = notify(next, q.userId, 'n.given', item);
       }
       return next;
     }
@@ -237,12 +246,12 @@ function reducer(state, action) {
     // "מחכה בחוץ": מי שלקחה מסמנת בעצמה
     case 'take': {
       const next = updateItem(state, item.id, (it) => ({ ...it, status: 'taken', takenBy: me, closedAt: Date.now() }));
-      return notify(next, item.ownerId, `${item.title} נלקח על ידי ${nameOf(me)}`, item.id);
+      return notify(next, item.ownerId, 'n.taken', item, me);
     }
 
     case 'reportGone': {
       const next = updateItem(state, item.id, (it) => ({ ...it, status: 'gone', reportedBy: me, closedAt: Date.now() }));
-      return notify(next, item.ownerId, `לפי ${nameOf(me)}, ${item.title} כבר לא שם`, item.id);
+      return notify(next, item.ownerId, 'n.gone', item, me);
     }
 
     // רשת ביטחון: המוסרת מחזירה לזמין אם מישהי טעתה
@@ -262,7 +271,7 @@ function reducer(state, action) {
         closedAt: Date.now(),
       }));
       for (const q of item.queue) {
-        if (!item.skipped.includes(q.userId)) next = notify(next, q.userId, `${item.title} כבר נמסר`, item.id);
+        if (!item.skipped.includes(q.userId)) next = notify(next, q.userId, 'n.given', item);
       }
       return next;
     }
@@ -280,7 +289,7 @@ function reducer(state, action) {
       }));
       for (const q of item.queue) {
         if (!item.skipped.includes(q.userId) && q.userId !== item.chosenId) {
-          next = notify(next, q.userId, `${item.title} חזר ללוח`, item.id);
+          next = notify(next, q.userId, 'n.back', item);
         }
       }
       return next;

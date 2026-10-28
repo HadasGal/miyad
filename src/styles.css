@@ -147,7 +147,7 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 /* הדגשה של מילה אחת בכותרת, כמו טוש */
 .mark { box-shadow: inset 0 -0.32em 0 var(--pop-soft); padding: 0 2px; }
 .brand-dot { color: var(--pop); }
-.tag-new { position: absolute; bottom: 10px; left: 10px; padding: 5px 12px; border-radius: 14px; background: var(--pop-strong); color: var(--on-pop); font-size: 13px; font-weight: 700; box-shadow: var(--photo-chip-shadow); }
+.tag-new { position: absolute; bottom: 10px; inset-inline-end: 10px; padding: 5px 12px; border-radius: 14px; background: var(--pop-strong); color: var(--on-pop); font-size: 13px; font-weight: 700; box-shadow: var(--photo-chip-shadow); }
 .search { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 26px; color: var(--muted); }
 .search input { flex: 1; border: 0; outline: none; background: transparent; font-size: 16px; color: var(--ink); min-width: 0; }
 .search:focus-within { border-color: var(--accent); }
@@ -162,7 +162,7 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .card:hover { color: var(--ink); }
 .card.is-done { opacity: 0.55; }
 .card-photo { position: relative; height: 120px; }
-.card-photo .pill { position: absolute; top: 10px; right: 10px; }
+.card-photo .pill { position: absolute; top: 10px; inset-inline-start: 10px; }
 /* סטטוס על תמונה: גדול יותר, אטום, עם צל שמפריד מכל תמונה, בהירה או כהה */
 .card-photo .pill, .item-hero > .pill { font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 14px; box-shadow: var(--photo-chip-shadow); }
 .card-photo .pill-available, .item-hero > .pill-available { background: var(--photo-available); color: var(--photo-available-ink); }
@@ -181,15 +181,15 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .nav-tab { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); text-decoration: none; min-width: 56px; min-height: 48px; justify-content: center; }
 .nav-tab.is-active { color: var(--accent); font-weight: 500; }
 .nav-icon { position: relative; display: inline-flex; align-items: center; justify-content: center; height: 32px; }
-.badge { position: absolute; top: -4px; left: -8px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--pop-strong); color: var(--on-pop); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.badge { position: absolute; top: -4px; inset-inline-end: -8px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--pop-strong); color: var(--on-pop); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .nav-plus { width: 52px; border-radius: 16px; background: var(--pop-strong); color: var(--on-pop); }
 .nav-tab.nav-publish { color: var(--pop-strong); font-weight: 500; }
 
 /* עמוד פריט */
 .item-hero { position: relative; height: 340px; }
 .item-hero.is-done .hero-photo { opacity: 0.55; }
-.hero-back { position: absolute; top: 20px; right: 20px; }
-.item-hero > .pill { position: absolute; bottom: 36px; right: 20px; font-size: 14px; padding: 6px 14px; }
+.hero-back { position: absolute; top: 20px; inset-inline-start: 20px; }
+.item-hero > .pill { position: absolute; bottom: 36px; inset-inline-start: 20px; font-size: 14px; padding: 6px 14px; }
 .item-sheet { position: relative; margin-top: -20px; background: var(--bg); border-radius: 24px 24px 0 0; padding: 24px 20px 24px; display: flex; flex-direction: column; gap: 16px; }
 .item-title { font-size: 24px; font-weight: 700; line-height: 1.25; }
 .person-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface); border-radius: 16px; }
@@ -233,7 +233,8 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .drafts { display: flex; flex-direction: column; gap: 12px; }
 .draft { display: flex; gap: 12px; align-items: flex-start; padding: 12px; background: var(--surface); border-radius: var(--r-card); border: 1px solid var(--line); }
 .draft-thumb { width: 72px; height: 72px; border-radius: 14px; overflow: hidden; flex-shrink: 0; }
-.draft-row { display: flex; gap: 8px; }
+.draft-row { display: flex; flex-direction: column; gap: 8px; }
+/* קטגוריה ומצב כל אחד בשורה משלו: זה לצד זה הם נחתכו (בעיקר באנגלית) */
 .draft .field input, .draft .field select { min-height: 44px; padding: 8px 12px; font-size: 15px; background: var(--bg); }
 .draft-x { width: 44px; height: 44px; margin: -6px; border: 0; background: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .pickup-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -288,6 +289,10 @@ main.with-nav { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 
 /* פתיחה והרשמה */
 .demo-actions { display: flex; gap: 12px; }
+/* מעבר שפה: באנגלית החץ "חזרה" צריך להצביע שמאלה */
+.lang-switch { background: none; border: 0; cursor: pointer; font: inherit; color: inherit; text-decoration: underline; text-underline-offset: 3px; min-height: 32px; padding: 0 4px; }
+.welcome-lang { margin-inline-start: auto; min-height: 44px; color: var(--muted); font-size: 14px; }
+[dir="ltr"] .icon-btn svg { transform: scaleX(-1); }
 .welcome { display: flex; flex-direction: column; gap: 32px; padding: 32px var(--gutter) 40px; min-height: 100dvh; }
 .welcome-text { display: flex; flex-direction: column; gap: 16px; }
 .brand-lockup { display: flex; align-items: baseline; gap: 10px; }

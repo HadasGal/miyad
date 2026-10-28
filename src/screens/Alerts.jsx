@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
-import { matchingItems, useStore } from '../store.jsx';
+import { matchingItems, useStore, userById } from '../store.jsx';
 import { Photo, StatusPill } from '../components/Bits.jsx';
 import Icon from '../components/Icon.jsx';
-import { timeAgo } from '../utils.js';
+import { useT } from '../i18n.jsx';
 
 export default function Alerts() {
   const { state, dispatch, me } = useStore();
+  const { t, L, ago } = useT();
   const [query, setQuery] = useState('');
+  // התראה נשמרת כמפתח + ערכים, ומתורגמת לשפה הנוכחית כאן
+  const noteText = (n) => (n.key ? t(n.key, { title: L(n.vars?.title), name: L(userById(n.vars?.by)?.short) }) : n.text);
 
   const mine = state.notifications.filter((n) => n.userId === me.id);
   // החדש למעלה, כדי שמה ששמרת עכשיו יופיע מיד עם התוצאות שלו
@@ -31,15 +34,15 @@ export default function Alerts() {
 
   return (
     <div className="screen">
-      <h1 className="h1">התראות</h1>
+      <h1 className="h1">{t('alerts.title')}</h1>
 
       <section className="stack-8" aria-labelledby="searches-h">
-        <h2 id="searches-h" className="h2">חיפושים שמורים</h2>
-        <p className="muted small">נראה לך מה כבר יש בלוח, ונעדכן כשיתפרסם עוד. בגרסה המלאה גם במייל.</p>
+        <h2 id="searches-h" className="h2">{t('alerts.saved')}</h2>
+        <p className="muted small">{t('alerts.savedHint')}</p>
         <form className="search" onSubmit={add}>
           <Icon name="bell" size={20} />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ספה, אופניים, מיטת תינוק" aria-label="חיפוש חדש" />
-          <button className="btn-small" type="submit" disabled={!query.trim()}>שמירה</button>
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('alerts.placeholder')} aria-label={t('alerts.newSearch')} />
+          <button className="btn-small" type="submit" disabled={!query.trim()}>{t('alerts.save')}</button>
         </form>
         {searches.length > 0 && (
           <ul className="saved-list">
@@ -49,9 +52,9 @@ export default function Alerts() {
                 <li key={a.id} className="saved-block">
                   <div className="saved-head">
                     <Icon name="bell" size={18} />
-                    <strong className="grow">{a.query}</strong>
-                    <span className="muted small">{found.length > 0 ? `${found.length} בלוח עכשיו` : 'עוד אין'}</span>
-                    <button className="saved-x" aria-label={`מחיקת ${a.query}`} onClick={() => dispatch({ type: 'removeAlert', id: a.id })}>
+                    <strong className="grow">{L(a.query)}</strong>
+                    <span className="muted small">{found.length > 0 ? t('alerts.onBoard', { n: found.length }) : t('alerts.none')}</span>
+                    <button className="saved-x" aria-label={t('alerts.delete', { q: L(a.query) })} onClick={() => dispatch({ type: 'removeAlert', id: a.id })}>
                       <Icon name="close" size={14} stroke={2.5} />
                     </button>
                   </div>
@@ -61,14 +64,14 @@ export default function Alerts() {
                         <li key={it.id}>
                           <a href={`#/item/${it.id}`} className="saved-match">
                             <Photo item={it} className="saved-thumb" />
-                            <span className="grow">{it.title}</span>
+                            <span className="grow">{L(it.title)}</span>
                             <StatusPill item={it} />
                           </a>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="muted small">כשזה יתפרסם, תגיע התראה.</p>
+                    <p className="muted small">{t('alerts.willNotify')}</p>
                   )}
                 </li>
               );
@@ -78,9 +81,9 @@ export default function Alerts() {
       </section>
 
       <section className="stack-8" aria-labelledby="feed-h">
-        <h2 id="feed-h" className="h2">עדכונים</h2>
+        <h2 id="feed-h" className="h2">{t('alerts.updates')}</h2>
         {mine.length === 0 ? (
-          <p className="muted">אין עדכונים עדיין. בקשה לפריט שלך, או פריט שמתאים לחיפוש, יופיעו כאן.</p>
+          <p className="muted">{t('alerts.noUpdates')}</p>
         ) : (
           <ul className="list">
             {mine.map((n) => (
@@ -88,8 +91,8 @@ export default function Alerts() {
                 <a href={`#/item/${n.itemId}`} className={`note-row ${fresh.ids.has(n.id) ? 'is-new' : ''}`}>
                   <span className="note-dot" aria-hidden="true" />
                   <div className="stack-2 grow">
-                    <span>{n.text}</span>
-                    <span className="muted small">{timeAgo(n.at)}</span>
+                    <span>{noteText(n)}</span>
+                    <span className="muted small">{ago(n.at)}</span>
                   </div>
                 </a>
               </li>

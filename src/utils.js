@@ -1,26 +1,9 @@
-export function timeAgo(ts) {
-  const diff = Math.max(0, Date.now() - ts);
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'עכשיו';
-  if (m < 60) return m === 1 ? 'לפני דקה' : `לפני ${m} דקות`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return h === 1 ? 'לפני שעה' : h === 2 ? 'לפני שעתיים' : `לפני ${h} שעות`;
-  const d = Math.floor(h / 24);
-  return d === 1 ? 'אתמול' : d === 2 ? 'לפני יומיים' : `לפני ${d} ימים`;
-}
-
 export const isDone = (status) => status === 'given' || status === 'taken' || status === 'gone';
 
-// בלוח לא כתוב למי זה שמור: רק המוסרת ומי שנבחרה צריכות לדעת
-export function statusLabel(item) {
-  switch (item.status) {
-    case 'available': return 'זמין';
-    case 'reserved': return 'שמור';
-    case 'given': return 'נמסר';
-    case 'taken':
-    case 'gone': return 'נלקח';
-    default: return '';
-  }
+// בלוח לא כתוב למי זה שמור: רק המוסרת ומי שנבחרה צריכות לדעת. מחזיר מפתח במילון.
+export function statusKey(item) {
+  if (item.status === 'gone') return 'status.taken';
+  return `status.${item.status}`;
 }
 
 // 0501234567 -> https://wa.me/972501234567?text=...

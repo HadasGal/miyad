@@ -2,17 +2,19 @@ import { useState } from 'react';
 import { firstInQueue, useStore, userById } from '../store.jsx';
 import { Avatar, Photo, StatusPill } from '../components/Bits.jsx';
 import Icon from '../components/Icon.jsx';
-import { isDone, itemLink, timeAgo, waShare, waToPerson } from '../utils.js';
+import { isDone, itemLink, waShare, waToPerson } from '../utils.js';
+import { useT } from '../i18n.jsx';
 
 export default function ItemPage({ id }) {
   const { state, me } = useStore();
+  const { t, L, ago } = useT();
   const item = state.items.find((i) => i.id === id);
 
   if (!item) {
     return (
       <div className="screen empty">
-        <p>הפריט הזה כבר לא בלוח.</p>
-        <a className="btn btn-primary" href="#/">חזרה ללוח</a>
+        <p>{t('item.gone')}</p>
+        <a className="btn btn-primary" href="#/">{t('item.backToBoard')}</a>
       </div>
     );
   }
@@ -24,35 +26,35 @@ export default function ItemPage({ id }) {
     <div className="item-page">
       <div className={`item-hero ${isDone(item.status) ? 'is-done' : ''}`}>
         <Photo item={item} className="hero-photo" />
-        <a href="#/" className="icon-btn hero-back" aria-label="חזרה ללוח"><Icon name="back" size={20} /></a>
+        <a href="#/" className="icon-btn hero-back" aria-label={t('item.backToBoard')}><Icon name="back" size={20} /></a>
         <StatusPill item={item} />
       </div>
 
       <div className="item-sheet">
         <div className="stack-6">
-          <h1 className="item-title">{item.title}</h1>
-          <span className="muted">פורסם {timeAgo(item.createdAt)}</span>
+          <h1 className="item-title">{L(item.title)}</h1>
+          <span className="muted">{t('item.posted', { ago: ago(item.createdAt) })}</span>
         </div>
 
         {!isOwner && (
           <div className="person-row">
             <Avatar userId={owner.id} />
             <div className="stack-2">
-              <strong className="fw-500">{owner.name}</strong>
-              <span className="muted small">{owner.street}</span>
+              <strong className="fw-500">{L(owner.name)}</strong>
+              <span className="muted small">{L(owner.street)}</span>
             </div>
           </div>
         )}
 
-        {item.description && <p className="item-desc">{item.description}</p>}
+        {L(item.description) && <p className="item-desc">{L(item.description)}</p>}
 
         <div className="tags">
-          {item.condition && <span className="tag">מצב: {item.condition}</span>}
-          <span className="tag">{item.pickup === 'outside' ? 'מחכה בחוץ' : 'תיאום איסוף'}</span>
+          {L(item.condition) && <span className="tag">{t('item.condition', { c: L(item.condition) })}</span>}
+          <span className="tag">{t(`pickup.${item.pickup}`)}</span>
         </div>
 
-        {item.pickup === 'outside' && item.location && (
-          <p className="location"><Icon name="pin" size={18} /> {item.location}</p>
+        {item.pickup === 'outside' && L(item.location) && (
+          <p className="location"><Icon name="pin" size={18} /> {L(item.location)}</p>
         )}
 
         {isOwner ? <OwnerPanel item={item} /> : <SeekerPanel item={item} owner={owner} />}
@@ -62,16 +64,18 @@ export default function ItemPage({ id }) {
 }
 
 function ShareButton({ item, quiet }) {
-  const text = `${item.title}${item.pickup === 'outside' && item.location ? `, ${item.location}` : ''}\n${itemLink(item.id)}`;
+  const { t, L } = useT();
+  const text = `${L(item.title)}${item.pickup === 'outside' && L(item.location) ? `, ${L(item.location)}` : ''}\n${itemLink(item.id)}`;
   return (
     <a className={`btn ${quiet ? 'btn-ghost' : 'btn-primary'}`} href={waShare(text)} target="_blank" rel="noreferrer">
-      <Icon name="chat" size={20} /> שיתוף בקבוצה
+      <Icon name="chat" size={20} /> {t('item.share')}
     </a>
   );
 }
 
 function OwnerPanel({ item }) {
   const { dispatch } = useStore();
+  const { t, L, ago } = useT();
   const [picking, setPicking] = useState(false);
   const act = (type, extra = {}) => dispatch({ type, itemId: item.id, ...extra });
 
@@ -82,12 +86,12 @@ function OwnerPanel({ item }) {
     return (
       <div className="done-card">
         <Icon name="check" size={36} />
-        <strong className="done-title">בבית חדש</strong>
+        <strong className="done-title">{t('item.newHome')}</strong>
         <span className="muted">
-          {to ? `נמסר ל${to.short}.` : 'סימנת שנמסר.'}
-          {waited && ' כל התור קיבל עדכון.'}
+          {to ? t('item.givenTo', { name: L(to.short) }) : t('item.markedGiven')}
+          {waited && t('item.queueNotified')}
         </span>
-        <a className="btn btn-ghost" href="#/mine">לפריטים שלי</a>
+        <a className="btn btn-ghost" href="#/mine">{t('item.toMine')}</a>
       </div>
     );
   }
@@ -100,21 +104,21 @@ function OwnerPanel({ item }) {
         <div className="done-card">
           <Icon name="check" size={36} />
           <strong className="done-title">
-            {!who ? 'סימנת שזה נלקח'
-              : item.status === 'taken' ? `נלקח על ידי ${who.short}` : `לפי ${who.short}, זה כבר לא היה שם`}
+            {!who ? t('item.markedTaken')
+              : item.status === 'taken' ? t('item.takenBy', { name: L(who.short) }) : t('item.goneBy', { name: L(who.short) })}
           </strong>
-          <span className="muted">הסטטוס התעדכן בלוח, אז אין הליכות לחינם.</span>
+          <span className="muted">{t('item.statusUpdated')}</span>
           {who
-            ? <button className="btn btn-ghost" onClick={() => act('stillThere')}>זה עדיין שם, להחזיר לזמין</button>
-            : <a className="btn btn-ghost" href="#/mine">לפריטים שלי</a>}
+            ? <button className="btn btn-ghost" onClick={() => act('stillThere')}>{t('item.stillThere')}</button>
+            : <a className="btn btn-ghost" href="#/mine">{t('item.toMine')}</a>}
         </div>
       );
     }
     return (
       <div className="panel">
-        <p className="muted">מחכה בחוץ. הסימון "לקחתי" נעשה ישר מהפריט, ומגיע עדכון.</p>
+        <p className="muted">{t('item.outsideOwner')}</p>
         <ShareButton item={item} />
-        <button className="btn btn-ghost" onClick={() => act('ownerClose')}>נלקח</button>
+        <button className="btn btn-ghost" onClick={() => act('ownerClose')}>{t('item.markTaken')}</button>
       </div>
     );
   }
@@ -128,25 +132,25 @@ function OwnerPanel({ item }) {
   return (
     <section className="panel" aria-labelledby="queue-h">
       <div className="row-between">
-        <h2 id="queue-h" className="h2">התור</h2>
-        <span className="muted small">לפי סדר הבקשה</span>
+        <h2 id="queue-h" className="h2">{t('item.queue')}</h2>
+        <span className="muted small">{t('item.queueOrder')}</span>
       </div>
 
       {item.queue.length === 0 && (
         <>
-          <p className="muted">עוד אין בקשות. שיתוף בקבוצה יעזור.</p>
+          <p className="muted">{t('item.noRequests')}</p>
           <ShareButton item={item} />
         </>
       )}
 
       {firstUser && (
         <div className="first-card">
-          <span className="muted small">בראש התור: {firstUser.short}</span>
-          <button className="btn btn-primary" onClick={() => act('choose', { userId: first })}>לתת ל{firstUser.short}</button>
+          <span className="muted small">{t('item.headOfQueue', { name: L(firstUser.short) })}</span>
+          <button className="btn btn-primary" onClick={() => act('choose', { userId: first })}>{t('item.giveTo', { name: L(firstUser.short) })}</button>
           {others.length > 0 && !picking && (
-            <button className="btn-link" onClick={() => setPicking(true)}>בחירה אחרת מהתור</button>
+            <button className="btn-link" onClick={() => setPicking(true)}>{t('item.chooseOther')}</button>
           )}
-          {picking && <p className="muted small center">אפשר לבחור מהתור. לכל מי שבתור לפני יישלח עדכון.</p>}
+          {picking && <p className="muted small center">{t('item.chooseHint')}</p>}
         </div>
       )}
 
@@ -161,23 +165,23 @@ function OwnerPanel({ item }) {
                 <span className="queue-pos">{i + 1}</span>
                 <Avatar userId={u.id} />
                 <div className="stack-2 grow">
-                  <strong className="fw-500">{u.short}</strong>
-                  <span className="muted small">{skipped ? 'לא נאסף' : `בקשה ${timeAgo(q.at)}`}</span>
+                  <strong className="fw-500">{L(u.short)}</strong>
+                  <span className="muted small">{skipped ? t('item.notCollected') : t('item.requested', { ago: ago(q.at) })}</span>
                 </div>
                 {picking && !item.chosenId && !skipped && q.userId !== first && (
-                  <button className="btn-small" onClick={() => { act('choose', { userId: u.id }); setPicking(false); }}>בחירה</button>
+                  <button className="btn-small" onClick={() => { act('choose', { userId: u.id }); setPicking(false); }}>{t('item.choose')}</button>
                 )}
-                {item.chosenId && !chosen && !skipped && i > chosenIdx && <span className="muted small">בהמתנה</span>}
+                {item.chosenId && !chosen && !skipped && i > chosenIdx && <span className="muted small">{t('item.waiting')}</span>}
               </div>
               {chosen && (
                 <div className="stack-8">
                   <a className="btn btn-primary" target="_blank" rel="noreferrer"
-                    href={waToPerson(u.phone, `היי ${u.short}, לגבי ${item.title} ממיד`)}>
-                    <Icon name="chat" size={20} /> לדבר עם {u.short} בווצאפ
+                    href={waToPerson(u.phone, t('item.waMsgOwner', { name: L(u.short), title: L(item.title) }))}>
+                    <Icon name="chat" size={20} /> {t('item.talkTo', { name: L(u.short) })}
                   </a>
                   <div className="btn-row">
-                    <button className="btn btn-soft" onClick={() => act('deliver')}>נמסר</button>
-                    <button className="btn btn-ghost" onClick={() => act('noShow')}>לא נאסף, להמשיך בתור</button>
+                    <button className="btn btn-soft" onClick={() => act('deliver')}>{t('item.delivered')}</button>
+                    <button className="btn btn-ghost" onClick={() => act('noShow')}>{t('item.noShow')}</button>
                   </div>
                 </div>
               )}
@@ -188,8 +192,8 @@ function OwnerPanel({ item }) {
 
       {!item.chosenId && (
         <div className="stack-8">
-          <p className="muted small">{item.queue.length > 0 ? 'נמסר מחוץ לתור, למשל דרך הקבוצה?' : 'נמסר דרך הקבוצה?'}</p>
-          <button className="btn btn-ghost" onClick={() => act('ownerClose')}>נמסר</button>
+          <p className="muted small">{item.queue.length > 0 ? t('item.outsideQueueQ') : t('item.viaGroupQ')}</p>
+          <button className="btn btn-ghost" onClick={() => act('ownerClose')}>{t('item.delivered')}</button>
         </div>
       )}
     </section>
@@ -198,18 +202,19 @@ function OwnerPanel({ item }) {
 
 function SeekerPanel({ item, owner }) {
   const { dispatch, me } = useStore();
+  const { t, L } = useT();
   const act = (type) => dispatch({ type, itemId: item.id });
 
   if (isDone(item.status)) {
-    return <div className="action-bar"><p className="muted center">כבר נלקח. אפשר לשמור התראה מהלוח, ונעדכן כשיופיע משהו דומה.</p></div>;
+    return <div className="action-bar"><p className="muted center">{t('item.alreadyTaken')}</p></div>;
   }
 
   if (item.pickup === 'outside') {
     return (
       <div className="action-bar">
-        <p className="muted center">אין תור. כל הקודם זוכה.</p>
-        <button className="btn btn-primary" onClick={() => act('take')}>לקחתי</button>
-        <button className="btn btn-ghost" onClick={() => act('reportGone')}>הגעתי וזה כבר לא שם</button>
+        <p className="muted center">{t('item.noQueue')}</p>
+        <button className="btn btn-primary" onClick={() => act('take')}>{t('item.take')}</button>
+        <button className="btn btn-ghost" onClick={() => act('reportGone')}>{t('item.reportGone')}</button>
       </div>
     );
   }
@@ -217,10 +222,10 @@ function SeekerPanel({ item, owner }) {
   if (item.chosenId === me.id) {
     return (
       <div className="action-bar">
-        <p className="center"><strong>זה שמור לך אצל {owner.short}.</strong></p>
+        <p className="center"><strong>{t('item.reservedForYou', { name: L(owner.short) })}</strong></p>
         <a className="btn btn-primary" target="_blank" rel="noreferrer"
-          href={waToPerson(owner.phone, `היי ${owner.short}, לגבי ${item.title}. מתי נוח לאסוף?`)}>
-          <Icon name="chat" size={20} /> תיאום איסוף בווצאפ
+          href={waToPerson(owner.phone, t('item.waMsgSeeker', { name: L(owner.short), title: L(item.title) }))}>
+          <Icon name="chat" size={20} /> {t('item.coordinateWa')}
         </a>
       </div>
     );
@@ -239,14 +244,14 @@ function SeekerPanel({ item, owner }) {
           <span className="pos-num">{myPos + 1}</span>
           <div className="stack-2">
             <strong className="fw-500">
-              {myPos > 0 ? `מקום ${myPos + 1} בתור` : held ? 'התור הבא הוא שלך' : 'המקום הראשון בתור שלך'}
+              {myPos > 0 ? t('item.place', { n: myPos + 1 }) : held ? t('item.nextIsYours') : t('item.firstIsYours')}
             </strong>
             <span className="muted small">
-              {held ? 'כרגע שמור. אם זה ישתחרר, יגיע עדכון.' : 'הנתינה לפי סדר התור. אם משהו ישתנה, יגיע עדכון.'}
+              {held ? t('item.heldHint') : t('item.orderHint')}
             </span>
           </div>
         </div>
-        <button className="btn btn-ghost" onClick={() => act('cancelRequest')}>יציאה מהתור</button>
+        <button className="btn btn-ghost" onClick={() => act('cancelRequest')}>{t('item.leaveQueue')}</button>
       </div>
     );
   }
@@ -255,7 +260,7 @@ function SeekerPanel({ item, owner }) {
   if (item.skipped.includes(me.id)) {
     return (
       <div className="action-bar">
-        <p className="muted center">האיסוף לא הסתדר, אז התור עבר הלאה. אפשר לשמור התראה ונעדכן כשיופיע משהו דומה.</p>
+        <p className="muted center">{t('item.skippedHint')}</p>
       </div>
     );
   }
@@ -264,10 +269,10 @@ function SeekerPanel({ item, owner }) {
     <div className="action-bar">
       <p className="muted center">
         {item.status === 'reserved'
-          ? 'כרגע שמור. אפשר להיכנס לתור, למקרה שהאיסוף לא יסתדר.'
-          : active.length > 0 ? `${active.length} בקשות בתור. אפשר להצטרף.` : 'עוד אין בקשות.'}
+          ? t('item.heldJoin')
+          : active.length > 0 ? t('item.requestsInQueue', { n: active.length }) : t('item.noRequestsYet')}
       </p>
-      <button className="btn btn-primary" onClick={() => act('request')}>אני רוצה</button>
+      <button className="btn btn-primary" onClick={() => act('request')}>{t('item.iWant')}</button>
     </div>
   );
 }

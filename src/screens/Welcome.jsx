@@ -1,11 +1,13 @@
 import { useStore } from '../store.jsx';
 import { COMMUNITY } from '../data/mockData.js';
-import { Photo, StatusPill } from '../components/Bits.jsx';
+import { LangSwitch, Photo, StatusPill } from '../components/Bits.jsx';
 import Icon from '../components/Icon.jsx';
+import { useT } from '../i18n.jsx';
 
 // מסך הפתיחה. צריך להסביר את המוצר תוך 10 שניות, ולתת להיכנס לדמו בלי הרשמה.
 export default function Welcome() {
   const { state, dispatch } = useStore();
+  const { t, L } = useT();
   const preview = state.items.filter((it) => it.status !== 'given').slice(0, 3);
 
   const demo = () => {
@@ -17,25 +19,24 @@ export default function Welcome() {
     <div className="welcome">
       <div className="welcome-text">
         <div className="brand-lockup">
-          <strong className="brand-big">מיד<span className="brand-dot">.</span></strong>
-          <span className="muted">{COMMUNITY.name}</span>
+          <strong className="brand-big">{t('brand')}<span className="brand-dot">.</span></strong>
+          <span className="muted">{L(COMMUNITY.name)}</span>
+          <LangSwitch className="welcome-lang" />
         </div>
 
-        <h1 className="welcome-h">כל המסירות בשכונה, <span className="mark">במקום אחד</span></h1>
-        <p className="welcome-sub">
-          פרסום בשנייה, תמונה ברורה של מה עוד זמין, והתראה כשמה שחיפשת מופיע. הקבוצה בווצאפ נשארת, ופה הסטטוס תמיד אמיתי.
-        </p>
+        <h1 className="welcome-h">{t('welcome.title')}<span className="mark">{t('welcome.titleMark')}</span></h1>
+        <p className="welcome-sub">{t('welcome.sub')}</p>
 
         <ul className="welcome-points">
-          <li><span className="point-icon"><Icon name="camera" size={20} /></span> תמונה אחת, וה-AI ממלא את השאר</li>
-          <li><span className="point-icon"><Icon name="check" size={20} /></span> זמין, שמור או נמסר. בלי לשאול "עוד רלוונטי?"</li>
-          <li><span className="point-icon"><Icon name="bell" size={20} /></span> התראה כשמה שחיפשת מגיע</li>
+          <li><span className="point-icon"><Icon name="camera" size={20} /></span> {t('welcome.point1')}</li>
+          <li><span className="point-icon"><Icon name="check" size={20} /></span> {t('welcome.point2')}</li>
+          <li><span className="point-icon"><Icon name="bell" size={20} /></span> {t('welcome.point3')}</li>
         </ul>
 
         <div className="welcome-cta">
-          <button className="btn btn-primary" onClick={demo}>צפייה בדמו</button>
-          <a className="btn btn-ghost" href="#/join">הצטרפות ל{COMMUNITY.name}</a>
-          <p className="muted small">הדמו בלי הרשמה, עם קהילה מדומה. אפשר להחליף פרופיל ולראות את שני הצדדים.</p>
+          <button className="btn btn-primary" onClick={demo}>{t('welcome.demo')}</button>
+          <a className="btn btn-ghost" href="#/join">{t('welcome.join', { community: L(COMMUNITY.name) })}</a>
+          <p className="muted small">{t('welcome.note')}</p>
         </div>
       </div>
 
@@ -47,7 +48,7 @@ export default function Welcome() {
               <StatusPill item={it} />
             </div>
             <div className="card-body">
-              <span className="card-title">{it.title}</span>
+              <span className="card-title">{L(it.title)}</span>
             </div>
           </div>
         ))}
