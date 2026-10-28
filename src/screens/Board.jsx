@@ -38,14 +38,14 @@ export default function Board() {
 
       <label className="search">
         <Icon name="search" size={20} />
-        <input type="search" value={query} placeholder="מה מחפשים? ספה, אופניים..."
+        <input type="search" value={query} placeholder="חיפוש: ספה, אופניים..."
           aria-label="חיפוש" onChange={(e) => { setQuery(e.target.value); setSaved(false); }} />
       </label>
 
       {q && !alreadyAlert && !saved && (
         <button className="alert-offer" onClick={saveAlert}>
           <Icon name="bell" size={18} />
-          לקבל התראה כשמפרסמים „{q}“
+          לקבל התראה כש„{q}“ יתפרסם
         </button>
       )}
       {q && (saved || alreadyAlert) && (

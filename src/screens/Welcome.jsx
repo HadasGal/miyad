@@ -21,13 +21,13 @@ export default function Welcome() {
           <span className="muted">{COMMUNITY.name}</span>
         </div>
 
-        <h1 className="welcome-h">מה שמוסרים בשכונה, <span className="mark">במקום אחד</span></h1>
+        <h1 className="welcome-h">כל המסירות בשכונה, <span className="mark">במקום אחד</span></h1>
         <p className="welcome-sub">
-          מפרסמים בשנייה, רואים מה עוד זמין, ומקבלים התראה כשמה שחיפשת מופיע. הקבוצה בווצאפ נשארת, ופה הסטטוס תמיד אמיתי.
+          פרסום בשנייה, תמונה ברורה של מה עוד זמין, והתראה כשמה שחיפשת מופיע. הקבוצה בווצאפ נשארת, ופה הסטטוס תמיד אמיתי.
         </p>
 
         <ul className="welcome-points">
-          <li><span className="point-icon"><Icon name="camera" size={20} /></span> מצלמים, וה-AI ממלא את השאר</li>
+          <li><span className="point-icon"><Icon name="camera" size={20} /></span> תמונה אחת, וה-AI ממלא את השאר</li>
           <li><span className="point-icon"><Icon name="check" size={20} /></span> זמין, שמור או נמסר. בלי לשאול "עוד רלוונטי?"</li>
           <li><span className="point-icon"><Icon name="bell" size={20} /></span> התראה כשמה שחיפשת מגיע</li>
         </ul>

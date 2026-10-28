@@ -85,7 +85,7 @@ function OwnerPanel({ item }) {
         <strong className="done-title">בבית חדש</strong>
         <span className="muted">
           {to ? `נמסר ל${to.short}.` : 'סימנת שנמסר.'}
-          {waited && ' כל מי שחיכו בתור קיבלו עדכון.'}
+          {waited && ' כל התור קיבל עדכון.'}
         </span>
         <a className="btn btn-ghost" href="#/mine">לפריטים שלי</a>
       </div>
@@ -103,7 +103,7 @@ function OwnerPanel({ item }) {
             {!who ? 'סימנת שזה נלקח'
               : item.status === 'taken' ? `נלקח על ידי ${who.short}` : `לפי ${who.short}, זה כבר לא היה שם`}
           </strong>
-          <span className="muted">הסטטוס התעדכן לכולם, אז אין הליכות לחינם.</span>
+          <span className="muted">הסטטוס התעדכן בלוח, אז אין הליכות לחינם.</span>
           {who
             ? <button className="btn btn-ghost" onClick={() => act('stillThere')}>זה עדיין שם, להחזיר לזמין</button>
             : <a className="btn btn-ghost" href="#/mine">לפריטים שלי</a>}
@@ -112,7 +112,7 @@ function OwnerPanel({ item }) {
     }
     return (
       <div className="panel">
-        <p className="muted">מחכה בחוץ. מי שלוקחים מסמנים בעצמם, ומגיע עדכון.</p>
+        <p className="muted">מחכה בחוץ. הסימון "לקחתי" נעשה ישר מהפריט, ומגיע עדכון.</p>
         <ShareButton item={item} />
         <button className="btn btn-ghost" onClick={() => act('ownerClose')}>נלקח</button>
       </div>
@@ -146,7 +146,7 @@ function OwnerPanel({ item }) {
           {others.length > 0 && !picking && (
             <button className="btn-link" onClick={() => setPicking(true)}>בחירה אחרת מהתור</button>
           )}
-          {picking && <p className="muted small center">אפשר לבחור מהתור. מי שהיו לפני יקבלו עדכון.</p>}
+          {picking && <p className="muted small center">אפשר לבחור מהתור. לכל מי שבתור לפני יישלח עדכון.</p>}
         </div>
       )}
 
@@ -265,7 +265,7 @@ function SeekerPanel({ item, owner }) {
       <p className="muted center">
         {item.status === 'reserved'
           ? 'כרגע שמור. אפשר להיכנס לתור, למקרה שהאיסוף לא יסתדר.'
-          : active.length > 0 ? `${active.length} כבר ביקשו. אפשר להצטרף לתור.` : 'עוד אין בקשות.'}
+          : active.length > 0 ? `${active.length} בקשות בתור. אפשר להצטרף.` : 'עוד אין בקשות.'}
       </p>
       <button className="btn btn-primary" onClick={() => act('request')}>אני רוצה</button>
     </div>

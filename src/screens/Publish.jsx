@@ -114,7 +114,7 @@ export default function Publish() {
   const pickupFields = (
     <>
       <fieldset className="field">
-        <legend>{stage === 'bulk' ? 'איך אוספים? (לכל הפריטים)' : 'איך אוספים?'}</legend>
+        <legend>{stage === 'bulk' ? 'איסוף (לכל הפריטים)' : 'איסוף'}</legend>
         <div className="pickup-grid">
           <button type="button" className={`pickup ${form.pickup === 'outside' ? 'is-on' : ''}`}
             aria-pressed={form.pickup === 'outside'} onClick={() => setForm((f) => ({ ...f, pickup: 'outside' }))}>
@@ -124,7 +124,7 @@ export default function Publish() {
           <button type="button" className={`pickup ${form.pickup === 'coordinate' ? 'is-on' : ''}`}
             aria-pressed={form.pickup === 'coordinate'} onClick={() => setForm((f) => ({ ...f, pickup: 'coordinate' }))}>
             <strong>תיאום איסוף</strong>
-            <span className="muted small">נכנסים לתור, ובוחרים למי לתת</span>
+            <span className="muted small">תור לפי הסדר, ובחירה למי לתת</span>
           </button>
         </div>
       </fieldset>
@@ -140,7 +140,7 @@ export default function Publish() {
   return (
     <div className="screen publish">
       <header className="row-between">
-        <h1 className="h1">{stage === 'published' ? 'על הלוח' : 'מה מוסרים היום?'}</h1>
+        <h1 className="h1">{stage === 'published' ? 'על הלוח' : 'מה למסירה היום?'}</h1>
         <a href="#/" className="icon-btn" aria-label="סגירה"><Icon name="close" size={18} /></a>
       </header>
 
@@ -159,7 +159,7 @@ export default function Publish() {
         <div className="publish-empty">
           <button className="drop" onClick={() => cameraRef.current?.click()}>
             <span className="drop-icon"><Icon name="camera" size={32} /></span>
-            <strong className="drop-title">לצלם את מה שמוסרים</strong>
+            <strong className="drop-title">לצלם את מה שיוצא מהבית</strong>
             <span className="muted">את השאר נמלא בשבילך</span>
           </button>
           <input ref={cameraRef} type="file" accept="image/*" capture="environment" multiple hidden onChange={onFiles} />
@@ -315,7 +315,7 @@ function Published({ items }) {
 
   return (
     <div className="stack-16">
-      <p className="muted">עכשיו שהשכנים יידעו.</p>
+      <p className="muted">עכשיו שכל השכונה תדע.</p>
 
       <div className="wa-preview">
         <span className="muted small">ככה זה ייראה בקבוצה</span>
@@ -339,7 +339,7 @@ function Published({ items }) {
         </div>
       </div>
 
-      <p className="info-row"><Icon name="refresh" size={20} /> הלינק תמיד מראה את הסטטוס העדכני. מי שלוחצים אחרי שהכל נלקח רואים את זה מיד.</p>
+      <p className="info-row"><Icon name="refresh" size={20} /> הלינק תמיד מראה את הסטטוס העדכני. לחיצה על הלינק אחרי שהכל נלקח מראה את זה מיד.</p>
 
       <a className="btn btn-primary" href={waShare(text)} target="_blank" rel="noreferrer">
         <Icon name="chat" size={20} /> שיתוף בקבוצה

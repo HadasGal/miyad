@@ -107,7 +107,7 @@ function DetailsStep() {
   const [tried, setTried] = useState(false);
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const errors = {
-    name: !form.name.trim() && 'איך קוראים לך?',
+    name: !form.name.trim() && 'מה השם?',
     street: !form.street.trim() && 'מה הרחוב?',
     phone: !isValidPhone(form.phone) && 'מספר נייד, למשל 050-1234567',
   };
@@ -127,7 +127,7 @@ function DetailsStep() {
     <form className="stack-16" onSubmit={submit} noValidate>
       <StepHeader back="#/join/check" n={2} />
       <h1 className="h1">כמה פרטים</h1>
-      <p className="muted">ככה השכנים יכירו, וההצטרפות תאושר מהר יותר.</p>
+      <p className="muted">ככה בשכונה ידעו מי זה, וההצטרפות תאושר מהר יותר.</p>
 
       <label className="field">שם
         <input autoComplete="name" value={form.name} onChange={set('name')} placeholder="שם פרטי ומשפחה"
@@ -164,7 +164,7 @@ function PendingStep() {
       <div className="join-hero"><Icon name="check" size={32} /></div>
       <h1 className="h1">{state.session.name.split(' ')[0]}, ההצטרפות ממתינה לאישור</h1>
       <p className="muted">
-        כל הצטרפות ל{COMMUNITY.name} מאושרת ידנית, כדי שהלוח יישאר של שכנים. נשלח לך מייל ל-<bdi className="ltr-inline">{state.session.email}</bdi> כשזה יקרה.
+        כל הצטרפות ל{COMMUNITY.name} מאושרת ידנית, כדי שהלוח יישאר של השכונה. נשלח לך מייל ל-<bdi className="ltr-inline">{state.session.email}</bdi> כשזה יקרה.
       </p>
       <button className="btn btn-primary" onClick={toDemo}>בינתיים, להציץ בדמו</button>
     </div>
